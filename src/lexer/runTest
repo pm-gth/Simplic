@@ -1,2 +1,0 @@
-#! /bin/bash
-gcc lexer.c lexer_test.c ../../third_party/unity.c -I ../../third_party/ -o tst --std=c17 -Wall -Wextra --pedantic -g -O0 -fsanitize=address -fsanitize=leak && ./tst

@@ -1,7 +1,5 @@
 #include "interpreter.h"
-#include "lexer.h"
 #include "parser.h"
-#include <stdio.h>
 
 int eval(SyntaxNode* node, SimplicError* error){
     if(error->hasError) return 0;
@@ -21,6 +19,7 @@ int eval(SyntaxNode* node, SimplicError* error){
             } else {
                 return l / r;
             }
+            case '%': return l % r;
         }
     }
     if(node->type == NODE_ASSIGN){
@@ -37,14 +36,26 @@ int eval(SyntaxNode* node, SimplicError* error){
         int val = eval(node->right, error);
         exit(val);
     }
+
+    if(node->type == NODE_INCREMENT){
+        // Fetch var in bank, the increase it by one
+    }
+
+    if(node->type == NODE_DECREMENT){
+        // Fetch var in bank, the decrease it by one
+    }
+
     return 0;
 }
 
 int main(void) {
         const char* code =
-        "PRINT 4 / 4\n"
-        "PRINT 7\n"
-        "RETURN 5 * 5";
+        "SET X = 4\n"
+        "DECR X\n"
+        "INCR X\n"
+        "PRINT 6 % 2\n"
+        "RETURN 5 * 5"
+        ;
 
     initTokenList(&tokenList);
     tokenizeSource(&tokenList, code);

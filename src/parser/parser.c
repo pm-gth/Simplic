@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lexer.h"
 
 Token* tokenList = NULL;
 
@@ -92,6 +93,7 @@ ParseResult parseStatement(SimplicError* error) {
         return parseStatement(error);
     }
 
+    // Set node contain the target's var name and a right branch with its new value (in form of factor or expression)
     if (t->type == TOKEN_SET) {
         advance(); // consume SET
         Token* var = advance(); // variable name
@@ -108,6 +110,7 @@ ParseResult parseStatement(SimplicError* error) {
         return makeResult(n);
     }
 
+    // Print node contains a right branch with the value to be printed
     if (t->type == TOKEN_PRINT) {
         advance(); // consume PRINT
         ParseResult expr = parseExpr(error);
@@ -121,6 +124,7 @@ ParseResult parseStatement(SimplicError* error) {
         return makeResult(n);
     }
 
+    // Print node contains a right branch with the value to be returned
     if (t->type == TOKEN_RETURN) {
         advance(); // consume RETURN
         ParseResult expr = parseExpr(error);
@@ -130,6 +134,22 @@ ParseResult parseStatement(SimplicError* error) {
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_RETURN;
         n->right = expr.node;
+        return makeResult(n);
+    }
+
+    // Incr/Decr node contains a right branch with the value to be increased/decreased
+    if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
+        TokenType oldType = t->type;
+        advance();
+
+        ParseResult expr = parseExpr(error);
+        if (expr.hasError || !expr.node)
+            return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
+
+        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        n->type = (oldType == TOKEN_INCREMENT)? NODE_INCREMENT : NODE_DECREMENT;
+        n->right = expr.node;
+
         return makeResult(n);
     }
 
@@ -143,6 +163,7 @@ ParseResult parseStatement(SimplicError* error) {
 ParseResult parseFactor(SimplicError* error) {
     Token* t = peek();
 
+    // Number node contains its value
     if (t->type == TOKEN_NUMBER) {
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_NUMBER;
@@ -150,6 +171,8 @@ ParseResult parseFactor(SimplicError* error) {
         advance();
         return makeResult(n);
     } 
+
+    // Variable node contains its name, used for reference in the var bank
     else if (t->type == TOKEN_VAR) {
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_VAR;
@@ -165,7 +188,9 @@ ParseResult parseTerm(SimplicError* error) {
     ParseResult left = parseFactor(error);
     if (left.hasError) return left;
 
-    while (peek()->type == TOKEN_MULT || peek()->type == TOKEN_DIV) {
+    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
+    // first one is in the left child, second's in the right one
+    while (peek()->type == TOKEN_MULT || peek()->type == TOKEN_DIV || peek()->type == TOKEN_MOD) {
         TokenType oldType = peek()->type; // Save ops type, we need to advance in the list for the second operand
 
         Token* op = advance();
@@ -176,7 +201,18 @@ ParseResult parseTerm(SimplicError* error) {
 
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_BIN_OP;
-        n->operator = (oldType == TOKEN_MULT ? '*' : '/');
+        
+        switch (oldType) {
+            case TOKEN_MULT:
+                n->operator = '*';
+            case TOKEN_DIV:
+                n->operator = '/';
+            case TOKEN_MOD:
+                n->operator = '%';
+            default:
+            ; // shut up compiler
+        }
+
         n->left = left.node;
         n->right = right.node;
 
@@ -190,6 +226,8 @@ ParseResult parseExpr(SimplicError* error) {
     ParseResult left = parseTerm(error);
     if (left.hasError) return left;
 
+    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
+    // first one is in the left child, second's in the right one
     while (peek()->type == TOKEN_PLUS || peek()->type == TOKEN_MINUS) {
         TokenType oldType = peek()->type;
 

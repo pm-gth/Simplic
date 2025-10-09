@@ -126,6 +126,7 @@ void tokenizeSource(Token** tokenList, const char* src) {
 		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-"); continue; }
 		if (src[i] == '*')  { i++; addTokenToTail(tokenList, TOKEN_MULT, "*"); continue; }
 		if (src[i] == '/')  { i++; addTokenToTail(tokenList, TOKEN_DIV, "/"); continue; }
+		if (src[i] == '%')  { i++; addTokenToTail(tokenList, TOKEN_MOD, "%"); continue; }
 
 		// Identifier or variable
 		if (isAlpha(src[i])) {
@@ -135,6 +136,8 @@ void tokenizeSource(Token** tokenList, const char* src) {
 			if (strcmp(buffer, "SET") == 0) { addTokenToTail(tokenList, TOKEN_SET, "SET"); continue; }
 			if (strcmp(buffer, "PRINT") == 0) { addTokenToTail(tokenList, TOKEN_PRINT, "PRINT"); continue; }
 			if (strcmp(buffer, "RETURN") == 0) { addTokenToTail(tokenList, TOKEN_RETURN, "RETURN"); continue; }
+			if (strcmp(buffer, "INCR") == 0) { addTokenToTail(tokenList, TOKEN_INCREMENT, "INCR"); continue; }
+			if (strcmp(buffer, "DECR") == 0) { addTokenToTail(tokenList, TOKEN_DECREMENT, "DECR"); continue; }
 			addTokenToTail(tokenList, TOKEN_VAR, buffer); continue;
 		}
 
