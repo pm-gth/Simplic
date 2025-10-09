@@ -87,7 +87,9 @@ void tokenLinkedListWorks(void){
 }
 
 void tokenizeWorks(){
-    const char* program = "SET X = 34\nPRINT X\0";
+    const char* program = "SET X = 34\n"
+                          "PRINT X\0";
+                          
     Token* myList; initTokenList(&myList);
     Token* testList; initTokenList(&testList);
 

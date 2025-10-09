@@ -123,20 +123,24 @@ void tokenizeSource(Token** tokenList, const char* src) {
 		if (src[i] == '\n') { i++; addTokenToTail(tokenList, TOKEN_NEWLINE, "\\n"); continue; }
 		if (src[i] == '=')  { i++; addTokenToTail(tokenList, TOKEN_EQUALS, "="); continue; }
 		if (src[i] == '+')  { i++; addTokenToTail(tokenList, TOKEN_PLUS, "+"); continue; }
+		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-"); continue; }
+		if (src[i] == '*')  { i++; addTokenToTail(tokenList, TOKEN_MULT, "*"); continue; }
+		if (src[i] == '/')  { i++; addTokenToTail(tokenList, TOKEN_DIV, "/"); continue; }
 
 		// Identifier or variable
 		if (isAlpha(src[i])) {
-			char buffer[MAX_TOKEN_TEXT]; int j = 0;
+			char buffer[IDENTIFIER_SIZE]; int j = 0;
 			while (isAlphaNumer(src[i])) buffer[j++] = src[i++];
 			buffer[j] = '\0';
 			if (strcmp(buffer, "SET") == 0) { addTokenToTail(tokenList, TOKEN_SET, "SET"); continue; }
 			if (strcmp(buffer, "PRINT") == 0) { addTokenToTail(tokenList, TOKEN_PRINT, "PRINT"); continue; }
+			if (strcmp(buffer, "RETURN") == 0) { addTokenToTail(tokenList, TOKEN_RETURN, "RETURN"); continue; }
 			addTokenToTail(tokenList, TOKEN_VAR, buffer); continue;
 		}
 
 		// Number
 		if (isNumber(src[i])) {
-			char buffer[MAX_TOKEN_TEXT]; int j = 0;
+			char buffer[IDENTIFIER_SIZE]; int j = 0;
 			while (isNumber(src[i])) buffer[j++] = src[i++];
 			buffer[j] = '\0';
 			addTokenToTail(tokenList, TOKEN_NUMBER, buffer); continue;
