@@ -1,33 +1,25 @@
-#include "lexer.h"
-#include "simplicError.h"
 #include "unity.h"
 #include "unity_internals.h"
 
+#include "lexer.h"
+#include "simplicError.h"
 #include "parser.h"
 
-SimplicError* error;
 
 void setUp(void) {
-    const char* program = 
-        "SET X = 7 + 1\n"
-        "PRINT 4\n"
-        "RETURN 5 / * 4\n"
-        "PRINT 0\n"
-        ;
-
-    tokenizeSource(&tokenList, program);
-    error = initError();
+    ;
 }
 
 void tearDown(void) {
-    removeAllTokens(&tokenList);
-    deleteError(&error);
+    ;
 }
 
 void testParseSet(void){
-    // Parse SET X = 7+1\n
-    ParseResult result = parseStatement(error);
+    const char* program = "SET X = 7 + 1\n";
+    tokenizeSource(&tokenList, program);
+    SimplicError* error = initError();
 
+    ParseResult result = parseStatement(error);
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
@@ -50,14 +42,17 @@ void testParseSet(void){
     TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
+
+    removeAllTokens(&tokenList);
+    deleteError(&error);
 }
 
 void testParsePrint(void){
-    // Parse PRINT 4\n
-    ParseResult result = parseStatement(error);
-    freeSyntaxTree(result.node);
-	result = parseStatement(error);
+    const char* program = "PRINT 4\n";
+    tokenizeSource(&tokenList, program);
+    SimplicError* error = initError();
 
+    ParseResult result = parseStatement(error);
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
@@ -71,27 +66,54 @@ void testParsePrint(void){
     TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
+
+    removeAllTokens(&tokenList);
+    deleteError(&error);
 }
 
 void testParseReturn(void){
-    // RETURN 5 / * 4\n
-    ParseResult result = parseStatement(error);
-    freeSyntaxTree(result.node);
-	result = parseStatement(error);
-    freeSyntaxTree(result.node);
-	result = parseStatement(error);
+    const char* program = "RETURN $";
+    tokenizeSource(&tokenList, program);
+    SimplicError* error = initError();
 
+    ParseResult result = parseStatement(error);
     TEST_ASSERT_TRUE(result.hasError);
 
     freeSyntaxTree(result.node);
+    removeAllTokens(&tokenList);
+    deleteError(&error);
 }
 
-// Add some more tests with complex args like 3 + 5 * 2
+void testParseSetDeclarationOnly(void){
+    const char* program = "SET Y";
+    tokenizeSource(&tokenList, program);
+    SimplicError* error = initError();
+
+    ParseResult result = parseStatement(error);
+    TEST_ASSERT_FALSE(result.hasError);
+
+        // Premade correct tree
+        SyntaxNode* root = malloc(sizeof(SyntaxNode));
+        root->type = NODE_ASSIGN;
+        strcpy(root->varName, "Y");
+
+        root->right = malloc(sizeof(SyntaxNode));
+        root->right->type = NODE_NUMBER;
+        root->right->numberValue = 0;
+
+    TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
+    freeSyntaxTree(result.node);
+    freeSyntaxTree(root);
+
+    removeAllTokens(&tokenList);
+    deleteError(&error);
+}
 
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(testParseSet);
 	RUN_TEST(testParsePrint);
 	RUN_TEST(testParseReturn);
+    RUN_TEST(testParseSetDeclarationOnly);
     return UNITY_END();
 }

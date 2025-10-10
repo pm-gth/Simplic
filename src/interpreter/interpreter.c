@@ -1,6 +1,8 @@
 #include "interpreter.h"
 #include "parser.h"
 
+MemoryCell* hashTable[HASH_TABLE_SIZE];
+
 void initHashTable(){
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
         hashTable[i] = NULL;
@@ -124,10 +126,26 @@ int delete(const char* key) {
     return -1;
 }
 
+void emptyMemoryBank() {
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        MemoryCell* current = hashTable[i];
+        while (current != NULL) {
+            MemoryCell* temp = current;
+            current = current->next;
+
+            if (temp->strPtr != NULL)
+                free(temp->strPtr);
+
+            free(temp);
+        }
+        hashTable[i] = NULL;
+    }
+}
+
 int eval(SyntaxNode* node, SimplicError* error){
     if(error->hasError) return 0;
     if(node->type == NODE_NUMBER) return node->numberValue;
-    if(node->type == NODE_VAR) return getInt(node->varName);
+    if(node->type == NODE_VAR) return getInt(node->varName); // Caso error, var no existe (tipo wrapper)
     if(node->type == NODE_BIN_OP){
         int l = eval(node->left, error);
         int r = eval(node->right, error);
@@ -178,46 +196,6 @@ int eval(SyntaxNode* node, SimplicError* error){
         }
     }
 
-    return 0;
-}
-
-int main(void) {
-    const char* code =
-        "PRINT 1\n"
-        "SET X = 4\n"
-        "PRINT X\n"
-        "INCR X\n"
-        "PRINT X"
-        ;
-
-    initHashTable();
-    initTokenList(&tokenList);
-    tokenizeSource(&tokenList, code);
-
-    SimplicError* error = initError();
-
-    for (;;) {
-        ParseResult result = parseStatement(error);
-
-        if (!result.node && !result.hasError)
-            break;
-
-        if (result.hasError) {
-            printError(error);
-            break;
-        }
-
-        eval(result.node, error);
-
-        if (error->hasError) {
-            printError(error);
-            break;
-        }
-
-        freeSyntaxTree(result.node);
-    }
-
-    removeAllTokens(&tokenList);
     return 0;
 }
 

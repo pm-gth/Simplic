@@ -14,17 +14,17 @@ struct MemoryCell {
     MemoryCell* next; // In case of name collision
 };
 
-MemoryCell* hashTable[HASH_TABLE_SIZE]; // Hashmap of variables
-void initHashTable();
+extern MemoryCell* hashTable[HASH_TABLE_SIZE]; // Hashmap of variables
 
 unsigned long stringHash(const char *str); // Hash function for strings
 
+void initHashTable();
 void insertInt(const char* key, int value); // Assigns int to variable, if it didn't exist it creates it
 void insertStr(const char* key, const char* str); // Assigns string to variable, if it didn't exist it creates it
 int getInt(const char* key); // Returns int value, -1 if the variable could not be found
 char* getStr(const char* key); // Returns int value, NULL if the variable could not be found
 int delete(const char* key); // Return 0 if key was deleted successfuly, else -1
 
-void emptyMemoryBank();
+void emptyMemoryBank(); // Emptyes the variable bank, do at exit
 
 #endif

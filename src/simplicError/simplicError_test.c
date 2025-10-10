@@ -18,6 +18,8 @@ void testErrorSet(void){
     TEST_ASSERT_TRUE(error->hasError);
     TEST_ASSERT_EQUAL_STRING("This is a test error", error->errMsg);
     TEST_ASSERT_EQUAL_INT(ERROR_DIVISION_BY_ZERO, error->errCode);
+
+    deleteError(&error);
 }
 
 void testErrorOverride(void){
@@ -28,6 +30,8 @@ void testErrorOverride(void){
     TEST_ASSERT_TRUE(error->hasError);
     TEST_ASSERT_EQUAL_STRING("New error", error->errMsg);
     TEST_ASSERT_EQUAL_INT(ERROR_UNKNOWN_INSTRUCTION, error->errCode);
+
+    deleteError(&error);
 }
 
 void testErrorUnset(void){
@@ -38,6 +42,8 @@ void testErrorUnset(void){
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_TRUE(error->errMsg == NULL);
     TEST_ASSERT_EQUAL_INT(NO_ERROR, error->errCode);
+
+    deleteError(&error);
 }
 
 void testErrorDelete(void){

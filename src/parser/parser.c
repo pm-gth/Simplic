@@ -1,6 +1,5 @@
 #include "parser.h"
 #include "lexer.h"
-#include <string.h>
 
 Token* tokenList = NULL;
 
@@ -107,18 +106,29 @@ ParseResult parseStatement(SimplicError* error) {
     if (t->type == TOKEN_SET) {
         advance(); // consume SET
         Token var = advance(); // variable name
-        advance(); // consume '='
 
-        // TODO: CHECK FOR DECLARATION WITHOUT INITIALIZATION
+        SyntaxNode* valueNode;
+        if(peek()->type != TOKEN_EQUALS){
+            // The variable is only being declared
+            // Create a number node with 0 to initilize
+            valueNode = malloc(sizeof(SyntaxNode));
+            valueNode->type = NODE_NUMBER;
+            valueNode->numberValue = 0;
+        } else{
+            advance(); // consume '='
 
-        ParseResult expr = parseExpr(error);
-        if (expr.hasError || !expr.node)
-            return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
+            ParseResult expr = parseExpr(error);
+            if (expr.hasError || !expr.node)
+                return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
 
+            valueNode = expr.node;
+        }
+
+        
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_ASSIGN;
         strcpy(n->varName, var.text);
-        n->right = expr.node;
+        n->right = valueNode; // Var's value
         return makeResult(n);
     }
 
@@ -217,12 +227,15 @@ ParseResult parseTerm(SimplicError* error) {
         switch (oldType) {
             case TOKEN_MULT:
                 n->operator = '*';
+                break;
             case TOKEN_DIV:
                 n->operator = '/';
+                break;
             case TOKEN_MOD:
                 n->operator = '%';
+                break;
             default:
-            ; // shut up compiler
+            ; // shut up the compiler
         }
 
         n->left = left.node;

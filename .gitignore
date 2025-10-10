@@ -1,3 +1,4 @@
-./.clang-format 
-./.clangd 
-./compile_flags.txt
+.clang-format 
+.clangd 
+compile_flags.txt
+build/
