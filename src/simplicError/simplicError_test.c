@@ -2,7 +2,6 @@
 #include "unity_internals.h"
 
 #include "simplicError.h"
-#include <time.h>
 
 void setUp(void) {
     ;

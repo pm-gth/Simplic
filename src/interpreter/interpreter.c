@@ -1,10 +1,133 @@
 #include "interpreter.h"
 #include "parser.h"
 
+void initHashTable(){
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        hashTable[i] = NULL;
+    }
+}
+
+unsigned long stringHash(const char *str){
+    unsigned long hash = 5381;
+    int c;
+
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c;
+
+    return hash % HASH_TABLE_SIZE;
+}
+
+void insertInt(const char* key, int value) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = hashTable[index];
+
+    // Check if it already exists
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            current->value = value;
+            return;
+        }
+        current = current->next;
+    }
+
+    // Does not exist, create it
+    MemoryCell* newMemCell = malloc(sizeof(MemoryCell));
+
+    strcpy(newMemCell->name, key);
+    newMemCell->value = value;
+    newMemCell->strPtr = NULL;
+    newMemCell->next = hashTable[index]; // In case there is a collision
+    hashTable[index] = newMemCell;
+}
+
+void insertStr(const char* key, const char* str) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = hashTable[index];
+
+    // Check if it already exists
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            if (current->strPtr != NULL){
+                free(current->strPtr);
+            }
+
+            int len = strlen(str);
+            current->strPtr = malloc(sizeof(char) * (len + 1));
+            strcpy(current->strPtr, str);
+            return;
+        }
+        current = current->next;
+    }
+
+    // Does not exist, create it
+    MemoryCell* newMemCell = malloc(sizeof(MemoryCell));
+
+    strcpy(newMemCell->name, key);
+
+    // Copy string into var
+    int len = strlen(str);
+    newMemCell->strPtr = malloc(sizeof(char) * (len + 1));
+    strcpy(newMemCell->strPtr, str);
+
+    newMemCell->next = hashTable[index];  // In case there is a collision
+    newMemCell->value = -1;
+    hashTable[index] = newMemCell;
+}
+
+
+int getInt(const char* key) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = hashTable[index];
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            return current->value;
+        }
+        current = current->next;
+    }
+    return -1;
+}
+
+char* getStr(const char* key) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = hashTable[index];
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            return current->strPtr;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+int delete(const char* key) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = hashTable[index];
+    MemoryCell* prev = NULL;
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            if (prev == NULL){
+                hashTable[index] = current->next;
+            } else{
+                prev->next = current->next;
+            }
+
+            if(current->strPtr != NULL){
+                free(current->strPtr);
+            }
+                
+            free(current);
+            return 0;
+        }
+        prev = current;
+        current = current->next;
+    }
+    return -1;
+}
+
 int eval(SyntaxNode* node, SimplicError* error){
     if(error->hasError) return 0;
     if(node->type == NODE_NUMBER) return node->numberValue;
-    if(node->type == NODE_VAR) return 0; // Cargar var de banco!!
+    if(node->type == NODE_VAR) return getInt(node->varName);
     if(node->type == NODE_BIN_OP){
         int l = eval(node->left, error);
         int r = eval(node->right, error);
@@ -23,8 +146,10 @@ int eval(SyntaxNode* node, SimplicError* error){
         }
     }
     if(node->type == NODE_ASSIGN){
-        // Create named var and store value
-        // Alphabetic order in var storage and search algorithm
+        int val = eval(node->right, error);
+        if(!error->hasError){
+            insertInt(node->varName, val);
+        }
     }
     if(node->type == NODE_PRINT){
         int val = eval(node->right, error);
@@ -38,25 +163,34 @@ int eval(SyntaxNode* node, SimplicError* error){
     }
 
     if(node->type == NODE_INCREMENT){
-        // Fetch var in bank, the increase it by one
+        int val = getInt(node->right->varName);
+        if(!error->hasError){
+            val++;
+            insertInt(node->right->varName, val);
+        }
     }
 
     if(node->type == NODE_DECREMENT){
-        // Fetch var in bank, the decrease it by one
+        int val = getInt(node->right->varName);
+        if(!error->hasError){
+            val--;
+            insertInt(node->right->varName, val);
+        }
     }
 
     return 0;
 }
 
 int main(void) {
-        const char* code =
+    const char* code =
+        "PRINT 1\n"
         "SET X = 4\n"
-        "DECR X\n"
+        "PRINT X\n"
         "INCR X\n"
-        "PRINT 6 % 2\n"
-        "RETURN 5 * 5"
+        "PRINT X"
         ;
 
+    initHashTable();
     initTokenList(&tokenList);
     tokenizeSource(&tokenList, code);
 
@@ -88,66 +222,3 @@ int main(void) {
 }
 
 
-/*
-Programa objetivo:
-
-SET X = 5
-FOR I = 1 TO 200 BY 1
-DO 
-    PRINT I
-    SET X = X * I 
-DONE
-RETURN X
-*/
-
-/*
-Programa objetivo:
-
-SET X = 67
-SET Y = 0
-
-IF X % 2 EQUALS 0
-THEN 
-    SET Y = 1
-ELSE
-    SET Y = 0
-ENDIF
-
-RETURN Y
-*/
-
-/*
-Programa objetivo:
-
-SET X = 100
-
-WHILE X LOWEREQ 0
-DO
-    SET X = X -1
-DONE
-
-RETURN X
-*/
-
-/*
-Programa objetivo:
-
-SET X = 100
-SET Y = 50
-
-IF X % 2 EQUALS 0 AND Y % 2 EQUALS 0
-THEN
-    PRINT 1
-ELSE
-    PRINT 0
-ENDIF
-
-RETURN 0
-*/
-
-// IF THEN ENDIF ELSE ELSEIF
-// FOR I = 0 TO 100 BY X
-// WHILE DO DONE
-// EQUALS, LOWER, GREATER, LOWEREQ, GREATEREQ
-// AND, OR
-// +, -, *. /, %

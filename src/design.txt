@@ -1,0 +1,132 @@
+// SIMPLIC: BASIC inspired language (BIL)
+
+// CREAR UNSET X -> borra variable del banco
+// Las vars de los for reciben unset automatico al acabar
+
+// CONSIDERACIONES SOBRE BUCLES: los bucles se procesarán en el interpreter
+// Un nodo de bucle tiene como hijo izq la condición y como hijo der el cuerpo
+// Implementar primero el while, así el for será más sencillo luego
+
+/*
+Programa objetivo:
+
+SET X = 5
+FOR I = 1 TO 200 BY 1
+DO 
+    PRINT I
+    SET X = X * I 
+DONE
+RETURN X
+*/
+
+/*
+Programa objetivo:
+
+SET X = 67
+SET Y = 0
+
+IF X % 2 EQUALS 0
+THEN 
+    SET Y = 1
+ELSE
+    SET Y = 0
+ENDIF
+
+RETURN Y
+*/
+
+/*
+Programa objetivo:
+
+SET X = 100
+
+WHILE X LOWEREQ 0
+DO
+    SET X = X -1
+DONE
+
+RETURN X
+*/
+
+/*
+Programa objetivo:
+
+SET X = 100
+SET Y = 50
+
+IF X % 2 EQUALS 0 AND Y % 2 EQUALS 0
+THEN
+    PRINT 1
+ELSE
+    PRINT 0
+ENDIF
+
+RETURN 0
+*/
+
+// IF THEN ENDIF ELSE ELSEIF
+// FOR I = 0 TO 100 BY X
+// WHILE DO DONE
+// NEQ, EQ, LT, GT, LEQ, GEQ
+// AND, OR
+// +, -, *. /, %
+
+// Comentarios delimitados entre # y \n
+
+// Gestión de condicionales en simplic:
+// Sin tipo bool dedicado, != 0 = true, 0 = false
+// Precedencia de < > == != menor que la de la suma
+
+/*
+SET X = 56 LT 7 OR 7 NEQ 0
+X = 1
+*/
+
+// Arrays
+/*
+# Programa que guarda valores pares de un array en otro
+# lexer: Mientras que lo siguiente no sea TOKEN_COMMA, se está inicializando un array
+SET X[5] = 1, 2, 3, 4, 5 # soportar []
+SET Y[5] # default lleno de 0s
+
+SET LEN = SIZEOF X # Método que devuelve tamaño de array
+SET J = 0
+
+FOR I = 0 TO LEN BY 1
+DO
+    IF X[I] % 2 EQ 0
+    THEN
+        Y[J] = X[I]
+        INCR J
+    FI
+DONE
+
+SET P = 0
+WHILE P LEQ J
+DO
+    PRINT I[P]
+DONE
+*/
+
+// Strings
+// Añadir PRINTLN que imprima \n al final por defecto
+/*
+SET X = "HELLO WORLD\n"
+PRINT X
+
+SET Y = 45 + X # Debería lanzar error de tipo
+PRINTLN "HELLO AGAIN"
+*/
+
+// Goto
+// Iría por números de línea o etiqueta?...
+/*
+1 PRINT "HELLO WORLD"
+2 GOTO 1
+3
+
+1 TAG LOOP
+2 PRINT "HELLO WORLD"
+3 GOTO LOOP
+4
+*/

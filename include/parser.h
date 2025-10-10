@@ -42,7 +42,7 @@ ParseResult makeResult(SyntaxNode* n);
 ParseResult makeError(SimplicError* err, const char* msg, int code);
 
 Token* peek(); // Returns current token
-Token* advance(); // Pops out a token
+Token advance(); // Pops out a token and return a copy of it
 
 ParseResult parseStatement(SimplicError* error); // instruction
 ParseResult parseFactor(SimplicError* error); // var or num

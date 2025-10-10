@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "lexer.h"
+#include <string.h>
 
 Token* tokenList = NULL;
 
@@ -7,10 +8,15 @@ Token* peek(){
     return tokenList;
 }
 
-Token* advance(){
-    Token* oldHead = tokenList;
+Token advance(){
+    Token copy;
+    copy.type = tokenList->type;
+    copy.next = tokenList->next;
+    strcpy(copy.text, tokenList->text);
+
     removeTokenFromHead(&tokenList);
-    return oldHead;
+
+    return copy;
 }
 
 void freeSyntaxTree(SyntaxNode* tree) {
@@ -31,6 +37,8 @@ void freeSyntaxTree(SyntaxNode* tree) {
         case NODE_ASSIGN:
         case NODE_PRINT:
         case NODE_RETURN:
+        case NODE_INCREMENT:
+        case NODE_DECREMENT:
             // These have only one child on the right
             freeSyntaxTree(tree->right);
             break;
@@ -66,6 +74,8 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
         case NODE_ASSIGN:
         case NODE_PRINT:
         case NODE_RETURN:
+        case NODE_INCREMENT:
+        case NODE_DECREMENT:
             return compareSyntaxTree(a->right, b->right);
 
         default:
@@ -96,8 +106,10 @@ ParseResult parseStatement(SimplicError* error) {
     // Set node contain the target's var name and a right branch with its new value (in form of factor or expression)
     if (t->type == TOKEN_SET) {
         advance(); // consume SET
-        Token* var = advance(); // variable name
+        Token var = advance(); // variable name
         advance(); // consume '='
+
+        // TODO: CHECK FOR DECLARATION WITHOUT INITIALIZATION
 
         ParseResult expr = parseExpr(error);
         if (expr.hasError || !expr.node)
@@ -105,7 +117,7 @@ ParseResult parseStatement(SimplicError* error) {
 
         SyntaxNode* n = malloc(sizeof(SyntaxNode));
         n->type = NODE_ASSIGN;
-        strcpy(n->varName, var->text);
+        strcpy(n->varName, var.text);
         n->right = expr.node;
         return makeResult(n);
     }
@@ -137,7 +149,7 @@ ParseResult parseStatement(SimplicError* error) {
         return makeResult(n);
     }
 
-    // Incr/Decr node contains a right branch with the value to be increased/decreased
+    // Incr/Decr node contains a right branch with the name of the variable to be increased/decreased
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
         advance();
@@ -193,7 +205,7 @@ ParseResult parseTerm(SimplicError* error) {
     while (peek()->type == TOKEN_MULT || peek()->type == TOKEN_DIV || peek()->type == TOKEN_MOD) {
         TokenType oldType = peek()->type; // Save ops type, we need to advance in the list for the second operand
 
-        Token* op = advance();
+        advance();
         ParseResult right = parseFactor(error);
 
         if (right.hasError || !right.node)
@@ -231,7 +243,7 @@ ParseResult parseExpr(SimplicError* error) {
     while (peek()->type == TOKEN_PLUS || peek()->type == TOKEN_MINUS) {
         TokenType oldType = peek()->type;
 
-        Token* op = advance();
+        advance();
         ParseResult right = parseTerm(error);
 
         if (right.hasError || !right.node)

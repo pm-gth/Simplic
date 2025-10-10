@@ -55,6 +55,7 @@ void testParseSet(void){
 void testParsePrint(void){
     // Parse PRINT 4\n
     ParseResult result = parseStatement(error);
+    freeSyntaxTree(result.node);
 	result = parseStatement(error);
 
     TEST_ASSERT_FALSE(result.hasError);
@@ -75,7 +76,9 @@ void testParsePrint(void){
 void testParseReturn(void){
     // RETURN 5 / * 4\n
     ParseResult result = parseStatement(error);
+    freeSyntaxTree(result.node);
 	result = parseStatement(error);
+    freeSyntaxTree(result.node);
 	result = parseStatement(error);
 
     TEST_ASSERT_TRUE(result.hasError);
