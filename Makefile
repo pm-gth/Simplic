@@ -34,6 +34,9 @@ $(TEST_DIR):
 simplic: $(BUILD_DIR) lexer.o simplicError.o parser.o interpreter.o main.o
 	$(CC) $(CFLAGS) $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
 
+run: simplic
+	./$(BUILD_DIR)/simplic
+
 # ----------- BUILD OBJECTS -----------
 
 lexer.o: $(BUILD_DIR)
