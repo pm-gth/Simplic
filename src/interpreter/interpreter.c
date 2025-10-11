@@ -1,11 +1,12 @@
-#include "interpreter.h"
+#include "private_interpreter.h"
 #include "parser.h"
+#include "simplicError.h"
 
-MemoryCell* hashTable[HASH_TABLE_SIZE];
+MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 
-void initHashTable(){
+void initMemoryBank(){
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
-        hashTable[i] = NULL;
+        MemoryBank[i] = NULL;
     }
 }
 
@@ -19,9 +20,23 @@ unsigned long stringHash(const char *str){
     return hash % HASH_TABLE_SIZE;
 }
 
+
+BankResult makeResultInt(int n) {
+    return (BankResult){ .integer = n, .string = NULL, .hasError = false };
+}
+
+BankResult makeResultStr(char* s) {
+    return (BankResult){ .integer = -1, .string = s, .hasError = false };
+}
+
+BankResult makeError(SimplicError* err, const char* msg, int code) {
+    setError(err, msg, code);
+    return (BankResult){ .integer = -1, .string = NULL, .hasError = true };
+}
+
 void insertInt(const char* key, int value) {
     unsigned int index = stringHash(key);
-    MemoryCell* current = hashTable[index];
+    MemoryCell* current = MemoryBank[index];
 
     // Check if it already exists
     while (current != NULL) {
@@ -38,13 +53,13 @@ void insertInt(const char* key, int value) {
     strcpy(newMemCell->name, key);
     newMemCell->value = value;
     newMemCell->strPtr = NULL;
-    newMemCell->next = hashTable[index]; // In case there is a collision
-    hashTable[index] = newMemCell;
+    newMemCell->next = MemoryBank[index]; // In case there is a collision
+    MemoryBank[index] = newMemCell;
 }
 
 void insertStr(const char* key, const char* str) {
     unsigned int index = stringHash(key);
-    MemoryCell* current = hashTable[index];
+    MemoryCell* current = MemoryBank[index];
 
     // Check if it already exists
     while (current != NULL) {
@@ -71,44 +86,44 @@ void insertStr(const char* key, const char* str) {
     newMemCell->strPtr = malloc(sizeof(char) * (len + 1));
     strcpy(newMemCell->strPtr, str);
 
-    newMemCell->next = hashTable[index];  // In case there is a collision
+    newMemCell->next = MemoryBank[index];  // In case there is a collision
     newMemCell->value = -1;
-    hashTable[index] = newMemCell;
+    MemoryBank[index] = newMemCell;
 }
 
 
-int getInt(const char* key) {
+BankResult getInt(const char* key, SimplicError* error) {
     unsigned int index = stringHash(key);
-    MemoryCell* current = hashTable[index];
+    MemoryCell* current = MemoryBank[index];
     while (current != NULL) {
         if (strcmp(current->name, key) == 0) {
-            return current->value;
+            return makeResultInt(current->value);
         }
         current = current->next;
     }
-    return -1;
+    return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
 }
 
-char* getStr(const char* key) {
+BankResult getStr(const char* key, SimplicError* error) {
     unsigned int index = stringHash(key);
-    MemoryCell* current = hashTable[index];
+    MemoryCell* current = MemoryBank[index];
     while (current != NULL) {
         if (strcmp(current->name, key) == 0) {
-            return current->strPtr;
+            return makeResultStr(current->strPtr);
         }
         current = current->next;
     }
-    return NULL;
+    return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
 }
 
 int delete(const char* key) {
     unsigned int index = stringHash(key);
-    MemoryCell* current = hashTable[index];
+    MemoryCell* current = MemoryBank[index];
     MemoryCell* prev = NULL;
     while (current != NULL) {
         if (strcmp(current->name, key) == 0) {
             if (prev == NULL){
-                hashTable[index] = current->next;
+                MemoryBank[index] = current->next;
             } else{
                 prev->next = current->next;
             }
@@ -128,7 +143,7 @@ int delete(const char* key) {
 
 void emptyMemoryBank() {
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
-        MemoryCell* current = hashTable[i];
+        MemoryCell* current = MemoryBank[i];
         while (current != NULL) {
             MemoryCell* temp = current;
             current = current->next;
@@ -138,14 +153,21 @@ void emptyMemoryBank() {
 
             free(temp);
         }
-        hashTable[i] = NULL;
+        MemoryBank[i] = NULL;
     }
 }
 
 int eval(SyntaxNode* node, SimplicError* error){
     if(error->hasError) return 0;
     if(node->type == NODE_NUMBER) return node->numberValue;
-    if(node->type == NODE_VAR) return getInt(node->varName); // Caso error, var no existe (tipo wrapper)
+    if(node->type == NODE_VAR){
+        BankResult res = getInt(node->varName, error);
+        if(res.hasError){
+            return -1; // Requested var was not initialized
+        } else {
+            return res.integer;
+        }
+    }
     if(node->type == NODE_BIN_OP){
         int l = eval(node->left, error);
         int r = eval(node->right, error);
@@ -181,7 +203,7 @@ int eval(SyntaxNode* node, SimplicError* error){
     }
 
     if(node->type == NODE_INCREMENT){
-        int val = getInt(node->right->varName);
+        int val = eval(node->right, error);
         if(!error->hasError){
             val++;
             insertInt(node->right->varName, val);
@@ -189,7 +211,7 @@ int eval(SyntaxNode* node, SimplicError* error){
     }
 
     if(node->type == NODE_DECREMENT){
-        int val = getInt(node->right->varName);
+        int val = eval(node->right, error);
         if(!error->hasError){
             val--;
             insertInt(node->right->varName, val);

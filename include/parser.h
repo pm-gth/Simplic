@@ -32,22 +32,13 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b);
 void freeSyntaxTree(SyntaxNode* tree);
 
 // Structure used to wrap result trees and check for errors
-typedef struct ParseResult ParseResult ;
+typedef struct ParseResult ParseResult;
 struct ParseResult{
     SyntaxNode* node;
     bool hasError;
 };
 
-ParseResult makeResult(SyntaxNode* n);
-ParseResult makeError(SimplicError* err, const char* msg, int code);
-
-Token* peek(); // Returns current token
-Token advance(); // Pops out a token and return a copy of it
-
 ParseResult parseStatement(SimplicError* error); // instruction
-ParseResult parseFactor(SimplicError* error); // var or num
-ParseResult parseTerm(SimplicError* error); // *, /
-ParseResult parseExpr(SimplicError* error); // +, -
 
 int eval(SyntaxNode* node, SimplicError* error);
 

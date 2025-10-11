@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "private_parser.h"
 #include "lexer.h"
 
 Token* tokenList = NULL;

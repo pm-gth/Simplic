@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "simplicError.h"
 
 int main(void) {
     const char* code =
@@ -8,17 +9,17 @@ int main(void) {
         "PRINT X"
         ;
 
-    initHashTable();
     initTokenList(&tokenList);
-    tokenizeSource(&tokenList, code);
-
+    initMemoryBank();
     SimplicError* error = initError();
 
+    tokenizeSource(&tokenList, code);
+    
     for (;;) {
         ParseResult result = parseStatement(error);
 
         if (!result.node && !result.hasError)
-            break;
+            break; // Reached EOF
 
         if (result.hasError) {
             printError(error);
@@ -35,7 +36,8 @@ int main(void) {
         freeSyntaxTree(result.node);
     }
 
-    removeAllTokens(&tokenList);
+    emptyTokenList(&tokenList);
     emptyMemoryBank();
+    deleteError(&error);
     return 0;
 }

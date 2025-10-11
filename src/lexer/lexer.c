@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "private_lexer.h"
 
 const char* src;
 
@@ -91,7 +91,7 @@ void printTokens(Token* tokenList){
 	printf("%s\n", curr->text); // Last token
 }
 
-int removeAllTokens(Token** tokenList){
+int emptyTokenList(Token** tokenList){
 	// Case: List is empty
 	if(*tokenList == NULL){
 		return -1;

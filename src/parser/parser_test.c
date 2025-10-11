@@ -3,7 +3,7 @@
 
 #include "lexer.h"
 #include "simplicError.h"
-#include "parser.h"
+#include "private_parser.h"
 
 
 void setUp(void) {
@@ -43,7 +43,7 @@ void testParseSet(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    removeAllTokens(&tokenList);
+    emptyTokenList(&tokenList);
     deleteError(&error);
 }
 
@@ -67,7 +67,7 @@ void testParsePrint(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    removeAllTokens(&tokenList);
+    emptyTokenList(&tokenList);
     deleteError(&error);
 }
 
@@ -80,7 +80,7 @@ void testParseReturn(void){
     TEST_ASSERT_TRUE(result.hasError);
 
     freeSyntaxTree(result.node);
-    removeAllTokens(&tokenList);
+    emptyTokenList(&tokenList);
     deleteError(&error);
 }
 
@@ -105,7 +105,7 @@ void testParseSetDeclarationOnly(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    removeAllTokens(&tokenList);
+    emptyTokenList(&tokenList);
     deleteError(&error);
 }
 

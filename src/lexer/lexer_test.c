@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "unity_internals.h"
 
-#include "lexer.h"
+#include "private_lexer.h"
 
 void setUp(void) {
     ;
@@ -83,7 +83,7 @@ void tokenLinkedListWorks(void){
     fclose(fake_stdout);
 
     TEST_ASSERT_EQUAL_STRING("Two Three Four Five\n", buffer);
-    removeAllTokens(&myList);
+    emptyTokenList(&myList);
 }
 
 void tokenizeWorks(){
@@ -139,8 +139,8 @@ void tokenizeWorks(){
         currentTestToken = currentTestToken->next;
     }
 
-    removeAllTokens(&myList);
-    removeAllTokens(&testList);
+    emptyTokenList(&myList);
+    emptyTokenList(&testList);
 }
 
 int main(void) {
