@@ -20,6 +20,13 @@ static void insertInt(const char* key, int value); // Assigns int to variable, i
 static void insertStr(const char* key, const char* str); // Assigns string to variable, if it didn't exist it creates it
 static BankResult getInt(const char* key, SimplicError* error);
 static BankResult getStr(const char* key, SimplicError* error);
+bool varIsInt(const char* key, SimplicError* error);
 static int delete(const char* key); // Return 0 if key was deleted successfuly, else -1
+
+static Value eval_makeResultInt(int n);
+static Value eval_makeResultStr(char* s);
+Value eval_makeResultVoid();
+static Value eval_makeError(SimplicError* err, const char* msg, int code);
+Value eval_makeError_keepErrInfo(SimplicError* err);
 
 #endif

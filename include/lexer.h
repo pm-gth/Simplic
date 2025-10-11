@@ -2,6 +2,7 @@
 #define LEXER_H
 
 #include "simplic.h"
+#include "simplicError.h"
 
 typedef enum {
     TOKEN_SET,
@@ -9,6 +10,7 @@ typedef enum {
     TOKEN_RETURN,
     TOKEN_VAR,
     TOKEN_NUMBER,
+    TOKEN_STRING,
     TOKEN_PLUS,
     TOKEN_MINUS,
     TOKEN_MULT,
@@ -24,19 +26,20 @@ typedef enum {
 typedef struct Token Token;
 struct Token {
     TokenType type;
-    char text[IDENTIFIER_SIZE];
+    char name[IDENTIFIER_SIZE];
 	struct Token* next;
+    char* string; // In case of string literal
 };
 
 // Token linked list functions
 void initTokenList(Token** tokenList);
 int emptyTokenList(Token** tokenList); // -1 if list is already empty
 
-int addTokenToTail(Token** tokenList, TokenType type, const char* text); // -1 if fail
+int addTokenToTail(Token** tokenList, TokenType type, const char* name, char* string); // -1 if fail
 int removeTokenFromHead(Token** tokenList); // -1 if list is already empty
 void printTokens(Token* tokenList);
 
 // Receives null-terminated string as input, creates linked list of tokens from a source code
-void tokenizeSource(Token** tokenList, const char* src);
+void tokenizeSource(Token** tokenList, const char* src, SimplicError* error);
 
 #endif

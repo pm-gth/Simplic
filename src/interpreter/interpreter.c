@@ -1,6 +1,8 @@
+#include "interpreter.h"
 #include "private_interpreter.h"
 #include "parser.h"
 #include "simplicError.h"
+#include <stdbool.h>
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 
@@ -26,7 +28,7 @@ BankResult makeResultInt(int n) {
 }
 
 BankResult makeResultStr(char* s) {
-    return (BankResult){ .integer = -1, .string = s, .hasError = false };
+    return (BankResult){ .integer = 0, .string = s, .hasError = false };
 }
 
 BankResult makeError(SimplicError* err, const char* msg, int code) {
@@ -41,6 +43,10 @@ void insertInt(const char* key, int value) {
     // Check if it already exists
     while (current != NULL) {
         if (strcmp(current->name, key) == 0) {
+            if(current->strPtr) { // Prev value stored was a string, delete it
+                free(current->strPtr);
+                current->strPtr = NULL;
+            }
             current->value = value;
             return;
         }
@@ -104,6 +110,19 @@ BankResult getInt(const char* key, SimplicError* error) {
     return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
 }
 
+bool varIsInt(const char* key, SimplicError* error) {
+    unsigned int index = stringHash(key);
+    MemoryCell* current = MemoryBank[index];
+    while (current != NULL) {
+        if (strcmp(current->name, key) == 0) {
+            return (current->strPtr == NULL);
+        }
+        current = current->next;
+    }
+    setError(error, "VAriable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    return false;
+}
+
 BankResult getStr(const char* key, SimplicError* error) {
     unsigned int index = stringHash(key);
     MemoryCell* current = MemoryBank[index];
@@ -157,68 +176,168 @@ void emptyMemoryBank() {
     }
 }
 
-int eval(SyntaxNode* node, SimplicError* error){
-    if(error->hasError) return 0;
-    if(node->type == NODE_NUMBER) return node->numberValue;
+Value eval_makeResultInt(int n) {
+    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL };
+}
+
+Value eval_makeResultStr(char* s) {
+    Value res = { .type = VALUE_STR, .integer = 0, .string = NULL };
+    int len = strlen(s);
+    res.string = malloc(sizeof(char)*(len+1));
+    strcpy(res.string, s);
+
+    return res;
+}
+
+Value eval_makeResultVoid() {
+    return (Value){ .type = VALUE_VOID, .integer = 0, .string = NULL };
+}
+
+Value eval_makeError(SimplicError* err, const char* msg, int code) {
+    return (Value){ .type = 0, .integer = 0, .string = NULL };
+    setError(err, msg, code);
+}
+
+Value eval_makeError_keepErrInfo(SimplicError* err) {
+    return (Value){ .type = 0, .integer = 0, .string = NULL };
+    setError(err, err->errMsg, err->errCode);
+}
+
+Value eval(SyntaxNode* node, SimplicError* error) { 
+    if(error->hasError) return eval_makeError_keepErrInfo(error);
+    if(node->type == NODE_NUMBER) return eval_makeResultInt(node->numberValue);
+    if(node->type == NODE_STRING){
+        Value res = eval_makeResultStr(node->string);
+        return res;
+    }
     if(node->type == NODE_VAR){
-        BankResult res = getInt(node->varName, error);
-        if(res.hasError){
-            return -1; // Requested var was not initialized
+        if(varIsInt(node->varName, error) && !error->hasError){
+            // Variable is an int
+            BankResult res = getInt(node->varName, error);
+            if(res.hasError){
+                return eval_makeError_keepErrInfo(error); // Requested var was not initialized
+            } else {
+                return eval_makeResultInt(res.integer);
+            }
+        } 
+        else if(!error->hasError) {
+            // Variable is a string
+            BankResult res = getStr(node->varName, error);
+            if(res.hasError){
+                return eval_makeError_keepErrInfo(error); // Requested var was not initialized
+            } else {
+                return eval_makeResultStr(res.string);
+            }
         } else {
-            return res.integer;
+            return eval_makeError_keepErrInfo(error);
         }
     }
     if(node->type == NODE_BIN_OP){
-        int l = eval(node->left, error);
-        int r = eval(node->right, error);
+        Value l = eval(node->left, error);
+        Value r = eval(node->right, error);
+        if(error->hasError) return eval_makeError_keepErrInfo(error);
+
+        // String concat
+        if (l.type == VALUE_STR && r.type == VALUE_STR && node->operator == '+') {
+            int len = strlen(l.string) + strlen(r.string);
+            char* buffer = malloc(sizeof(char)*(len+1));
+            snprintf(buffer, len+1, "%s%s", l.string, r.string);
+            
+            Value res = eval_makeResultStr(buffer);
+            free(buffer);
+            return res;
+        }
+
+        // String and number concat
+        if (l.type == VALUE_STR && r.type == VALUE_INT && node->operator == '+') {
+            char buffer[20]; // suficiente para un int normal
+            snprintf(buffer, sizeof(buffer), "%s%d", l.string, r.integer);
+
+            Value res = eval_makeResultStr(buffer);
+            return res;
+        }
+
+        if(l.type == VALUE_INT && r.type == VALUE_STR && node->operator == '+') {
+            char buffer[20]; // suficiente para un int normal
+            snprintf(buffer, sizeof(buffer), "%d%s", l.integer, r.string);
+
+            Value res = eval_makeResultStr(buffer);
+            return res;
+        }
+
         switch(node->operator){
-            case '+': return l + r;
-            case '-': return l - r;
-            case '*': return l * r;
+            case '+': return eval_makeResultInt(l.integer + r.integer);
+            case '-': return eval_makeResultInt(l.integer - r.integer);
+            case '*': return eval_makeResultInt(l.integer * r.integer);
             case '/':
-            if(r == 0){
-                setError(error, "Error: Division by 0, execution halted", ERROR_DIVISION_BY_ZERO);
-                return -1;
+            if(r.integer == 0){
+                return eval_makeError(error, "Division by 0, execution halted", ERROR_DIVISION_BY_ZERO);
             } else {
-                return l / r;
+                return eval_makeResultInt(l.integer / r.integer);
             }
-            case '%': return l % r;
+            case '%': return eval_makeResultInt(l.integer % r.integer);
         }
     }
     if(node->type == NODE_ASSIGN){
-        int val = eval(node->right, error);
-        if(!error->hasError){
-            insertInt(node->varName, val);
+        Value val = eval(node->right, error);
+        if (error->hasError) return eval_makeError_keepErrInfo(error);
+
+        if (val.type == VALUE_INT) {
+            insertInt(node->varName, val.integer);
+        } else if (val.type == VALUE_STR) {
+            insertStr(node->varName, val.string);
+            free(val.string);
         }
+        return eval_makeResultVoid();
     }
     if(node->type == NODE_PRINT){
-        int val = eval(node->right, error);
-        if(!error->hasError){
-            printf("%d\n", val);
+        Value val = eval(node->right, error);
+        if (error->hasError) return eval_makeError_keepErrInfo(error);
+        
+        if (val.type == VALUE_INT) {
+            printf("%d\n", val.integer);
+        } else if (val.type == VALUE_STR) {
+            printf("%s\n", val.string);
+            free(val.string);
         }
+        return eval_makeResultVoid();
     }
     if(node->type == NODE_RETURN){
-        int val = eval(node->right, error);
-        exit(val);
+        Value val = eval(node->right, error);
+        if (error->hasError) return eval_makeError_keepErrInfo(error);
+        
+        if (val.type == VALUE_INT) {
+            exit(val.integer);
+        } else if (val.type == VALUE_STR) {
+            return eval_makeError(error, "Tried to return a string", ERROR_MISC);
+        }
     }
 
     if(node->type == NODE_INCREMENT){
-        int val = eval(node->right, error);
-        if(!error->hasError){
-            val++;
-            insertInt(node->right->varName, val);
+        Value val = eval(node->right, error);
+
+        if(val.type == VALUE_INT) {
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+
+            val.integer++;
+            insertInt(node->right->varName, val.integer);
         }
+        return eval_makeResultVoid();
     }
 
     if(node->type == NODE_DECREMENT){
-        int val = eval(node->right, error);
-        if(!error->hasError){
-            val--;
-            insertInt(node->right->varName, val);
+        Value val = eval(node->right, error);
+
+        if(val.type == VALUE_INT) {
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+
+            val.integer--;
+            insertInt(node->right->varName, val.integer);
         }
+        return eval_makeResultVoid();
     }
 
-    return 0;
+    return eval_makeError(error, "Tried to evaluate unknown type node", ERROR_MISC);
 }
 
 

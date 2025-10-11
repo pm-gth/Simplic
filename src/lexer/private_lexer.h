@@ -8,6 +8,6 @@ static bool isAlpha(char c);
 static bool isNumber(char c);
 static bool isAlphaNumer(char c);
 
-static Token* createToken(TokenType type, const char* text);
+Token* createToken(TokenType type, const char* name, char* string);
 
 #endif

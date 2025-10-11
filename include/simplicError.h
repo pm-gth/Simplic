@@ -10,7 +10,9 @@ typedef enum {
     ERROR_UNKNOWN_INSTRUCTION,
     ERROR_INVALID_EXPR,
     ERROR_UNEXPECTED_TOKEN,
-    ERROR_ACCESS_TO_UNDECLARED_VAR
+    ERROR_ACCESS_TO_UNDECLARED_VAR,
+    ERROR_NON_TERMINATED_STRING_LITERAL,
+    ERROR_MISC // Do not bother with these
 } SimplicErrorType;
 
 typedef struct SimplicError SimplicError;

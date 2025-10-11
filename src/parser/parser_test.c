@@ -13,8 +13,8 @@ void tearDown(void) {
 
 void testParseSet(void){
     const char* program = "SET X = 7 + 1\n";
-    tokenizeSource(&tokenList, program);
     SimplicError* error = initError();
+    tokenizeSource(&tokenList, program, error);
 
     ParseResult result = parseStatement(error);
     TEST_ASSERT_FALSE(result.hasError);
@@ -46,8 +46,8 @@ void testParseSet(void){
 
 void testParsePrint(void){
     const char* program = "PRINT 4\n";
-    tokenizeSource(&tokenList, program);
     SimplicError* error = initError();
+    tokenizeSource(&tokenList, program, error);
 
     ParseResult result = parseStatement(error);
     TEST_ASSERT_FALSE(result.hasError);
@@ -70,8 +70,8 @@ void testParsePrint(void){
 
 void testParseReturn(void){
     const char* program = "RETURN $";
-    tokenizeSource(&tokenList, program);
     SimplicError* error = initError();
+    tokenizeSource(&tokenList, program, error);
 
     ParseResult result = parseStatement(error);
     TEST_ASSERT_TRUE(result.hasError);
@@ -83,8 +83,8 @@ void testParseReturn(void){
 
 void testParseSetDeclarationOnly(void){
     const char* program = "SET Y";
-    tokenizeSource(&tokenList, program);
     SimplicError* error = initError();
+    tokenizeSource(&tokenList, program, error);
 
     ParseResult result = parseStatement(error);
     TEST_ASSERT_FALSE(result.hasError);

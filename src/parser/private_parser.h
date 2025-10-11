@@ -13,4 +13,6 @@ static ParseResult parseFactor(SimplicError* error); // var or num
 static ParseResult parseTerm(SimplicError* error); // *, /
 static ParseResult parseExpr(SimplicError* error); // +, -
 
+static SyntaxNode* initNode();
+
 #endif

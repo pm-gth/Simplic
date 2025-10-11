@@ -1,6 +1,6 @@
+#include "parser.h"
 #include "private_parser.h"
 #include "lexer.h"
-
 Token* tokenList = NULL;
 
 Token* peek(){
@@ -11,11 +11,21 @@ Token advance(){
     Token copy;
     copy.type = tokenList->type;
     copy.next = tokenList->next;
-    strcpy(copy.text, tokenList->text);
+    strcpy(copy.name, tokenList->name);
 
     removeTokenFromHead(&tokenList);
 
     return copy;
+}
+
+static SyntaxNode* initNode() {
+    SyntaxNode* res = malloc(sizeof(SyntaxNode));
+    res->numberValue = 0;
+    res->operator = '&';
+    res->string = NULL;
+    res->left = NULL;
+    res->right = NULL;
+    res->type = 0;
 }
 
 void freeSyntaxTree(SyntaxNode* tree) {
@@ -26,6 +36,9 @@ void freeSyntaxTree(SyntaxNode* tree) {
         case NODE_NUMBER:
         case NODE_VAR:
             // No child nodes to free
+            break;
+        case NODE_STRING:
+            free(tree->string);
             break;
 
         case NODE_BIN_OP:
@@ -66,6 +79,10 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
         case NODE_VAR:
             // Vars are only compared by name, their value is in the bank
             return strcmp(a->varName, b->varName) == 0;
+
+        case NODE_STRING:
+            // Compare string contents
+            return strcmp(a->string, b->string) == 0;
 
         case NODE_BIN_OP:
             return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right);
@@ -111,7 +128,7 @@ ParseResult parseStatement(SimplicError* error) {
         if(peek()->type != TOKEN_EQUALS){
             // The variable is only being declared
             // Create a number node with 0 to initilize
-            valueNode = malloc(sizeof(SyntaxNode));
+            valueNode = initNode();
             valueNode->type = NODE_NUMBER;
             valueNode->numberValue = 0;
         } else{
@@ -125,9 +142,9 @@ ParseResult parseStatement(SimplicError* error) {
         }
 
         
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_ASSIGN;
-        strcpy(n->varName, var.text);
+        strcpy(n->varName, var.name);
         n->right = valueNode; // Var's value
         return makeResult(n);
     }
@@ -139,7 +156,7 @@ ParseResult parseStatement(SimplicError* error) {
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
 
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_PRINT;
         n->right = expr.node;
 
@@ -153,7 +170,7 @@ ParseResult parseStatement(SimplicError* error) {
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid RETURN expression", ERROR_INVALID_EXPR);
 
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_RETURN;
         n->right = expr.node;
         return makeResult(n);
@@ -168,7 +185,7 @@ ParseResult parseStatement(SimplicError* error) {
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
 
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = (oldType == TOKEN_INCREMENT)? NODE_INCREMENT : NODE_DECREMENT;
         n->right = expr.node;
 
@@ -187,18 +204,29 @@ ParseResult parseFactor(SimplicError* error) {
 
     // Number node contains its value
     if (t->type == TOKEN_NUMBER) {
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_NUMBER;
-        n->numberValue = atoi(t->text);
+        n->numberValue = atoi(t->name);
         advance();
         return makeResult(n);
     } 
 
     // Variable node contains its name, used for reference in the var bank
     else if (t->type == TOKEN_VAR) {
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_VAR;
-        strcpy(n->varName, t->text);
+        strcpy(n->varName, t->name);
+        advance();
+        return makeResult(n);
+    }
+
+    // String node contains its text
+    else if (t->type == TOKEN_STRING) {
+        SyntaxNode* n = initNode();
+        n->type = NODE_STRING;
+        n->string = malloc(sizeof(char)*(strlen(t->string)+1));
+        n->numberValue = 0;
+        strcpy(n->string, t->string);
         advance();
         return makeResult(n);
     }
@@ -221,7 +249,7 @@ ParseResult parseTerm(SimplicError* error) {
         if (right.hasError || !right.node)
             return makeError(error, "Invalid right operand in binary expression", ERROR_UNDEFINED_SECOND_OPERAND);
 
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
         
         switch (oldType) {
@@ -262,7 +290,7 @@ ParseResult parseExpr(SimplicError* error) {
         if (right.hasError || !right.node)
             return makeError(error, "Invalid right operand in expression", ERROR_UNDEFINED_SECOND_OPERAND);
 
-        SyntaxNode* n = malloc(sizeof(SyntaxNode));
+        SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
         n->operator = (oldType == TOKEN_PLUS ? '+' : '-');
         n->left = left.node;

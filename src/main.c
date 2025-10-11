@@ -3,17 +3,18 @@
 
 int main(void) {
     const char* code =
-        "SET X\n"
-        "PRINT Y\n"
+        "SET X = 8 * 2 + 3\n"
         "INCR X\n"
-        "PRINT X"
+        "SET Y = \"El resultado es: \"\n"
+        "PRINT Y + X\n"
+        "RETURN 0\n"
         ;
 
     initTokenList(&tokenList);
     initMemoryBank();
     SimplicError* error = initError();
 
-    tokenizeSource(&tokenList, code);
+    tokenizeSource(&tokenList, code, error);
     
     for (;;) {
         ParseResult result = parseStatement(error);

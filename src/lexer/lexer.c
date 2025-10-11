@@ -1,4 +1,6 @@
+#include "lexer.h"
 #include "private_lexer.h"
+#include "simplicError.h"
 
 const char* src;
 
@@ -18,7 +20,7 @@ void initTokenList(Token** tokenList){
 	(*tokenList) = NULL;
 }
 
-Token* createToken(TokenType type, const char* text){
+Token* createToken(TokenType type, const char* name, char* string){
 	Token* newToken = malloc(sizeof(Token));
 
 	if(newToken == NULL){
@@ -27,13 +29,20 @@ Token* createToken(TokenType type, const char* text){
 
 	newToken->type = type;
 	newToken->next = NULL;
-	strcpy(newToken->text, text);
+	strcpy(newToken->name, name);
+
+	// If it's a string token, store the string literal
+	if(string != NULL){
+		newToken->string = string;
+	} else {
+		newToken->string = NULL;
+	}
 
 	return newToken;
 }
 
-int addTokenToTail(Token** tokenList, TokenType type, const char* text){
-	Token* newToken = createToken(type, text);
+int addTokenToTail(Token** tokenList, TokenType type, const char* name, char* string){
+	Token* newToken = createToken(type, name, string);
 
 	if(!newToken){
 		return -1;
@@ -57,6 +66,11 @@ int addTokenToTail(Token** tokenList, TokenType type, const char* text){
 }
 
 int removeTokenFromHead(Token** tokenList){
+	// If it's a string token, remove its content
+	if((*tokenList)->string != NULL){
+		free((*tokenList)->string);
+	}
+	
 	// Case: List is empty
 	if(*tokenList == NULL){
 		return -1;
@@ -84,11 +98,11 @@ void printTokens(Token* tokenList){
 		if(curr->type == TOKEN_NEWLINE){
 			putchar('\n');
 		} else {
-			printf("%s ", curr->text);
+			printf("%s ", curr->name);
 		}
 		curr = curr->next;
 	}
-	printf("%s\n", curr->text); // Last token
+	printf("%s\n", curr->name); // Last token
 }
 
 int emptyTokenList(Token** tokenList){
@@ -112,7 +126,7 @@ int emptyTokenList(Token** tokenList){
 	return 0;
 }
 
-void tokenizeSource(Token** tokenList, const char* src) {
+void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 	unsigned short int i = 0;
 	int len = strlen(src);
 
@@ -120,25 +134,53 @@ void tokenizeSource(Token** tokenList, const char* src) {
 		// Symbol or escape seq
 		while (src[i] == ' ' || src[i] == '\t') i++;
 
-		if (src[i] == '\n') { i++; addTokenToTail(tokenList, TOKEN_NEWLINE, "\\n"); continue; }
-		if (src[i] == '=')  { i++; addTokenToTail(tokenList, TOKEN_EQUALS, "="); continue; }
-		if (src[i] == '+')  { i++; addTokenToTail(tokenList, TOKEN_PLUS, "+"); continue; }
-		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-"); continue; }
-		if (src[i] == '*')  { i++; addTokenToTail(tokenList, TOKEN_MULT, "*"); continue; }
-		if (src[i] == '/')  { i++; addTokenToTail(tokenList, TOKEN_DIV, "/"); continue; }
-		if (src[i] == '%')  { i++; addTokenToTail(tokenList, TOKEN_MOD, "%"); continue; }
+		if (src[i] == '\n') { i++; addTokenToTail(tokenList, TOKEN_NEWLINE, "\\n", NULL); continue; }
+		if (src[i] == '=')  { i++; addTokenToTail(tokenList, TOKEN_EQUALS, "=", NULL); continue; }
+		if (src[i] == '+')  { i++; addTokenToTail(tokenList, TOKEN_PLUS, "+", NULL); continue; }
+		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-", NULL); continue; }
+		if (src[i] == '*')  { i++; addTokenToTail(tokenList, TOKEN_MULT, "*", NULL); continue; }
+		if (src[i] == '/')  { i++; addTokenToTail(tokenList, TOKEN_DIV, "/", NULL); continue; }
+		if (src[i] == '%')  { i++; addTokenToTail(tokenList, TOKEN_MOD, "%", NULL); continue; }
+
+		// String literal
+		if (src[i] == '"') { 
+			i++; // Skip ' " '
+			int j = i;
+			while(j < len && src[j] != '"') { 
+				j++; 
+			}
+
+			if(j >= len){
+				setError(error, "Could not find end of string literal", ERROR_NON_TERMINATED_STRING_LITERAL);
+				return;
+			}
+
+			// String is correctly delimited
+			char* buffer = malloc(sizeof(char)*(j - i +1));
+			j = 0;
+
+			while(src[i] != '"') { 
+				buffer[j] = src[i];
+				j++; i++;
+			}
+			buffer[j] = '\0';
+
+			i++; // Skip last ' " '
+			addTokenToTail(tokenList, TOKEN_STRING, "STRING", buffer); 
+			continue;
+		}
 
 		// Identifier or variable
 		if (isAlpha(src[i])) {
 			char buffer[IDENTIFIER_SIZE]; int j = 0;
 			while (isAlphaNumer(src[i])) buffer[j++] = src[i++];
 			buffer[j] = '\0';
-			if (strcmp(buffer, "SET") == 0) { addTokenToTail(tokenList, TOKEN_SET, "SET"); continue; }
-			if (strcmp(buffer, "PRINT") == 0) { addTokenToTail(tokenList, TOKEN_PRINT, "PRINT"); continue; }
-			if (strcmp(buffer, "RETURN") == 0) { addTokenToTail(tokenList, TOKEN_RETURN, "RETURN"); continue; }
-			if (strcmp(buffer, "INCR") == 0) { addTokenToTail(tokenList, TOKEN_INCREMENT, "INCR"); continue; }
-			if (strcmp(buffer, "DECR") == 0) { addTokenToTail(tokenList, TOKEN_DECREMENT, "DECR"); continue; }
-			addTokenToTail(tokenList, TOKEN_VAR, buffer); continue;
+			if (strcmp(buffer, "SET") == 0) { addTokenToTail(tokenList, TOKEN_SET, "SET", NULL); continue; }
+			if (strcmp(buffer, "PRINT") == 0) { addTokenToTail(tokenList, TOKEN_PRINT, "PRINT", NULL); continue; }
+			if (strcmp(buffer, "RETURN") == 0) { addTokenToTail(tokenList, TOKEN_RETURN, "RETURN", NULL); continue; }
+			if (strcmp(buffer, "INCR") == 0) { addTokenToTail(tokenList, TOKEN_INCREMENT, "INCR", NULL); continue; }
+			if (strcmp(buffer, "DECR") == 0) { addTokenToTail(tokenList, TOKEN_DECREMENT, "DECR", NULL); continue; }
+			addTokenToTail(tokenList, TOKEN_VAR, buffer, NULL); continue;
 		}
 
 		// Number
@@ -146,11 +188,11 @@ void tokenizeSource(Token** tokenList, const char* src) {
 			char buffer[IDENTIFIER_SIZE]; int j = 0;
 			while (isNumber(src[i])) buffer[j++] = src[i++];
 			buffer[j] = '\0';
-			addTokenToTail(tokenList, TOKEN_NUMBER, buffer); continue;
+			addTokenToTail(tokenList, TOKEN_NUMBER, buffer, NULL); continue;
 		}
 
 		i++; // Unknown character
 		// Maybe create unknown token and halt interpreter ???
 	}
-	addTokenToTail(tokenList, TOKEN_EOF, ""); // Reached string end, add EOF
+	addTokenToTail(tokenList, TOKEN_EOF, "", NULL); // Reached string end, add EOF
 }

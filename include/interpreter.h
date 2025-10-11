@@ -15,9 +15,25 @@ struct MemoryCell {
 
 extern MemoryCell* MemoryBank[HASH_TABLE_SIZE]; // Hashmap of variables
 
+typedef enum {
+    VALUE_INT,
+    VALUE_STR,
+    VALUE_VOID
+} ValueType;
+
+// Wrapper type for eval()
+typedef struct Value Value;
+struct Value {
+    ValueType type;
+    int integer;
+    char* string;
+};
+
 
 void initMemoryBank();
-
 void emptyMemoryBank(); // Emptyes the variable bank, do at exit
+
+
+Value eval(SyntaxNode* node, SimplicError* error);
 
 #endif
