@@ -1,8 +1,9 @@
 #include "interpreter.h"
+#include "lexer.h"
 #include "simplicError.h"
 
 int main(void) {
-    const char* code =
+    const char* program =
         "SET X = 8 * 2 + 3\n"
         "INCR X\n"
         "SET Y = \"El resultado es: \"\n"
@@ -10,25 +11,27 @@ int main(void) {
         "RETURN 0\n"
         ;
 
-    initTokenList(&tokenList);
+    Token* tokenList = initTokenList();
     initMemoryBank();
     SimplicError* error = initError();
 
-    tokenizeSource(&tokenList, code, error);
+    tokenizeSource(&tokenList, program, error);
 
     for (;;) {
-        ParseResult result = parseStatement(error);
+        SyntaxNode* result = parseTokenList(&tokenList, error);
 
-        if (!result.node && !result.hasError)
+        if (!result && !error->hasError) {
             break; // Reached EOF with no return
-
-        if (result.hasError) {
+        }
+            
+        if (error->hasError) {
             printError(error);
             break;
         }
 
-        Value val = eval(result.node, error);
-        freeSyntaxTree(result.node);
+        Value val = eval(result, error);
+        freeSyntaxTree(result);
+        
 
         if (error->hasError) {
             printError(error);

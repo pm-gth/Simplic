@@ -32,7 +32,7 @@ struct Token {
 };
 
 // Token linked list functions
-void initTokenList(Token** tokenList);
+Token* initTokenList();
 int emptyTokenList(Token** tokenList); // -1 if list is already empty
 
 int addTokenToTail(Token** tokenList, TokenType type, const char* name, char* string); // -1 if fail

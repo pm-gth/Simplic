@@ -1,15 +1,18 @@
+#include "lexer.h"
 #include "private_parser.h"
 #include "unity.h"
 #include "unity_internals.h"
 
 #include "parser.c"
 
+Token*tokenList;
+
 void setUp(void) {
-    ;
+    tokenList = initTokenList();
 }
 
 void tearDown(void) {
-    ;
+    emptyTokenList(&tokenList);
 }
 
 void testParseSet(void){
@@ -17,7 +20,7 @@ void testParseSet(void){
     SimplicError* error = initError();
     tokenizeSource(&tokenList, program, error);
 
-    ParseResult result = parseStatement(error);
+    ParseResult result = parseStatement(&tokenList, error);
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
@@ -50,7 +53,7 @@ void testParsePrint(void){
     SimplicError* error = initError();
     tokenizeSource(&tokenList, program, error);
 
-    ParseResult result = parseStatement(error);
+    ParseResult result = parseStatement(&tokenList, error);
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
@@ -74,7 +77,7 @@ void testParseReturn(void){
     SimplicError* error = initError();
     tokenizeSource(&tokenList, program, error);
 
-    ParseResult result = parseStatement(error);
+    ParseResult result = parseStatement(&tokenList, error);
     TEST_ASSERT_TRUE(result.hasError);
 
     freeSyntaxTree(result.node);
@@ -87,7 +90,7 @@ void testParseSetDeclarationOnly(void){
     SimplicError* error = initError();
     tokenizeSource(&tokenList, program, error);
 
-    ParseResult result = parseStatement(error);
+    ParseResult result = parseStatement(&tokenList, error);
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree

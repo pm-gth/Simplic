@@ -1,19 +1,19 @@
 #include "parser.h"
 #include "private_parser.h"
 #include "lexer.h"
-Token* tokenList = NULL;
+#include "simplicError.h"
 
-Token* peek(){
-    return tokenList;
+Token* peek(Token** tokenList){
+    return *tokenList;
 }
 
-Token advance(){
+Token advance(Token** tokenList){
     Token copy;
-    copy.type = tokenList->type;
-    copy.next = tokenList->next;
-    strcpy(copy.name, tokenList->name);
+    copy.type = (*tokenList)->type;
+    copy.next = (*tokenList)->next;
+    strcpy(copy.name, (*tokenList)->name);
 
-    removeTokenFromHead(&tokenList);
+    removeTokenFromHead(tokenList);
 
     return copy;
 }
@@ -113,30 +113,30 @@ ParseResult makeError(SimplicError* err, const char* msg, int code) {
     return (ParseResult){ .node = NULL, .hasError = true };
 }
 
-ParseResult parseStatement(SimplicError* error) {
-    Token* t = peek();
+ParseResult parseStatement(Token** tokenList, SimplicError* error) {
+    Token* t = peek(tokenList);
 
     if (t->type == TOKEN_NEWLINE) {
-        advance();
-        return parseStatement(error);
+        advance(tokenList);
+        return parseStatement(tokenList, error);
     }
 
     // Set node contain the target's var name and a right branch with its new value (in form of factor or expression)
     if (t->type == TOKEN_SET) {
-        advance(); // consume SET
-        Token var = advance(); // variable name
+        advance(tokenList); // consume SET
+        Token var = advance(tokenList); // variable name
 
         SyntaxNode* valueNode;
-        if(peek()->type != TOKEN_EQUALS){
+        if(peek(tokenList)->type != TOKEN_EQUALS){
             // The variable is only being declared
             // Create a number node with 0 to initilize
             valueNode = initNode();
             valueNode->type = NODE_NUMBER;
             valueNode->numberValue = 0;
         } else{
-            advance(); // consume '='
+            advance(tokenList); // consume '='
 
-            ParseResult expr = parseExpr(error);
+            ParseResult expr = parseExpr(tokenList, error);
             if (expr.hasError || !expr.node)
                 return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
 
@@ -153,8 +153,8 @@ ParseResult parseStatement(SimplicError* error) {
 
     // Print node contains a right branch with the value to be printed
     if (t->type == TOKEN_PRINT) {
-        advance(); // consume PRINT
-        ParseResult expr = parseExpr(error);
+        advance(tokenList); // consume PRINT
+        ParseResult expr = parseExpr(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
 
@@ -167,8 +167,8 @@ ParseResult parseStatement(SimplicError* error) {
 
     // Print node contains a right branch with the value to be returned
     if (t->type == TOKEN_RETURN) {
-        advance(); // consume RETURN
-        ParseResult expr = parseExpr(error);
+        advance(tokenList); // consume RETURN
+        ParseResult expr = parseExpr(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid RETURN expression", ERROR_INVALID_EXPR);
 
@@ -181,9 +181,9 @@ ParseResult parseStatement(SimplicError* error) {
     // Incr/Decr node contains a right branch with the name of the variable to be increased/decreased
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
-        advance();
+        advance(tokenList);
 
-        ParseResult expr = parseExpr(error);
+        ParseResult expr = parseExpr(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
 
@@ -201,15 +201,15 @@ ParseResult parseStatement(SimplicError* error) {
     return makeError(error, "Unknown statement", ERROR_UNKNOWN_INSTRUCTION);
 }
 
-ParseResult parseFactor(SimplicError* error) {
-    Token* t = peek();
+ParseResult parseFactor(Token** tokenList, SimplicError* error) {
+    Token* t = peek(tokenList);
 
     // Number node contains its value
     if (t->type == TOKEN_NUMBER) {
         SyntaxNode* n = initNode();
         n->type = NODE_NUMBER;
         n->numberValue = atoi(t->name);
-        advance();
+        advance(tokenList);
         return makeResult(n);
     } 
 
@@ -218,7 +218,7 @@ ParseResult parseFactor(SimplicError* error) {
         SyntaxNode* n = initNode();
         n->type = NODE_VAR;
         strcpy(n->varName, t->name);
-        advance();
+        advance(tokenList);
         return makeResult(n);
     }
 
@@ -229,24 +229,24 @@ ParseResult parseFactor(SimplicError* error) {
         n->string = malloc(sizeof(char)*(strlen(t->string)+1));
         n->numberValue = 0;
         strcpy(n->string, t->string);
-        advance();
+        advance(tokenList);
         return makeResult(n);
     }
 
     return makeError(error, "Expected number or variable", ERROR_UNEXPECTED_TOKEN);
 }
 
-ParseResult parseTerm(SimplicError* error) {
-    ParseResult left = parseFactor(error);
+ParseResult parseTerm(Token** tokenList, SimplicError* error) {
+    ParseResult left = parseFactor(tokenList, error);
     if (left.hasError) return left;
 
     // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
     // first one is in the left child, second's in the right one
-    while (peek()->type == TOKEN_MULT || peek()->type == TOKEN_DIV || peek()->type == TOKEN_MOD) {
-        TokenType oldType = peek()->type; // Save ops type, we need to advance in the list for the second operand
+    while (peek(tokenList)->type == TOKEN_MULT || peek(tokenList)->type == TOKEN_DIV || peek(tokenList)->type == TOKEN_MOD) {
+        TokenType oldType = peek(tokenList)->type; // Save ops type, we need to advance in the list for the second operand
 
-        advance();
-        ParseResult right = parseFactor(error);
+        advance(tokenList);
+        ParseResult right = parseFactor(tokenList, error);
 
         if (right.hasError || !right.node)
             return makeError(error, "Invalid right operand in binary expression", ERROR_UNDEFINED_SECOND_OPERAND);
@@ -277,17 +277,17 @@ ParseResult parseTerm(SimplicError* error) {
     return left;
 }
 
-ParseResult parseExpr(SimplicError* error) {
-    ParseResult left = parseTerm(error);
+ParseResult parseExpr(Token** tokenList, SimplicError* error) {
+    ParseResult left = parseTerm(tokenList, error);
     if (left.hasError) return left;
 
     // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
     // first one is in the left child, second's in the right one
-    while (peek()->type == TOKEN_PLUS || peek()->type == TOKEN_MINUS) {
-        TokenType oldType = peek()->type;
+    while (peek(tokenList)->type == TOKEN_PLUS || peek(tokenList)->type == TOKEN_MINUS) {
+        TokenType oldType = peek(tokenList)->type;
 
-        advance();
-        ParseResult right = parseTerm(error);
+        advance(tokenList);
+        ParseResult right = parseTerm(tokenList, error);
 
         if (right.hasError || !right.node)
             return makeError(error, "Invalid right operand in expression", ERROR_UNDEFINED_SECOND_OPERAND);
@@ -302,4 +302,9 @@ ParseResult parseExpr(SimplicError* error) {
     }
 
     return left;
+}
+
+SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {
+    ParseResult res = parseStatement(tokenList, error);
+    return  res.node;
 }

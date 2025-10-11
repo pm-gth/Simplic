@@ -21,7 +21,7 @@ typedef enum {
     VALUE_VOID
 } ValueType;
 
-// Wrapper type for eval()
+// Wrapper type for eval(), contains the result of the last evaluation
 typedef struct Value Value;
 struct Value {
     ValueType type;
@@ -30,11 +30,10 @@ struct Value {
     bool receivedReturn;
 };
 
-
 void initMemoryBank();
-void emptyMemoryBank(); // Emptyes the variable bank, do at exit
+void emptyMemoryBank(); // Empties the variable bank, call at exit
 
-
+// Receives an AST as input and computes it recursively, returning the value of each node
 Value eval(SyntaxNode* node, SimplicError* error);
 
 #endif

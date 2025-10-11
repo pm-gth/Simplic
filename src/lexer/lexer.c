@@ -16,8 +16,8 @@ bool isAlphaNumer(char c){
 	return (isAlpha(c) || isNumber(c));
 }
 
-void initTokenList(Token** tokenList){
-	(*tokenList) = NULL;
+Token* initTokenList(){
+	return NULL;
 }
 
 Token* createToken(TokenType type, const char* name, char* string){

@@ -311,7 +311,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
-            eval_return(val.integer); // Sets a flag indicating that the last instruction was a return, used to stop eval()
+            return eval_return(val.integer); // Sets a flag indicating that the last instruction was a return, used to stop eval()
         } else if (val.type == VALUE_STR) {
             return eval_makeError(error, "Tried to return a string", ERROR_MISC);
         }

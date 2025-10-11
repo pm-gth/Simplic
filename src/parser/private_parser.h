@@ -3,16 +3,21 @@
 
 #include "parser.h"
 
+// Wrapper functions, used to return nodes or errors
 static ParseResult makeResult(SyntaxNode* n);
 static ParseResult makeError(SimplicError* err, const char* msg, int code);
 
-static Token* peek(); // Returns current token
-static Token advance(); // Pops out a token and return a copy of it
+static Token* peek(Token** tokenList); // Returns current token
+static Token advance(Token** tokenList); // Pops out a token and returns a copy of it
 
-static ParseResult parseFactor(SimplicError* error); // var or num
-static ParseResult parseTerm(SimplicError* error); // *, /
-static ParseResult parseExpr(SimplicError* error); // +, -
+static bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b); // Used to compare AST in tests
 
-static SyntaxNode* initNode();
+// Node generators, used to determine the kind of node to create based on the token list
+static ParseResult parseStatement(Token** tokenList, SimplicError* error); // generates instruction nodes
+static ParseResult parseFactor(Token** tokenList, SimplicError* error); // generates variable, number or string nodes
+static ParseResult parseTerm(Token** tokenList, SimplicError* error); // takes care of * and / nodes
+static ParseResult parseExpr(Token** tokenList, SimplicError* error); // takes care of + and - nodes
+
+static SyntaxNode* initNode(); // Used to create a node, sets to NULL its fields
 
 #endif

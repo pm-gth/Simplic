@@ -17,12 +17,11 @@ typedef enum {
     NODE_BIN_OP
 } NodeType;
 
-extern Token* tokenList; // Global token List
-
+// AST nodes, with different nodes to account for different tokens (vars, loops, instructions...)
 typedef struct SyntaxNode SyntaxNode;
 struct SyntaxNode {
     NodeType type;
-    char varName[IDENTIFIER_SIZE];   // For variables
+    char varName[IDENTIFIER_SIZE]; // For variables
     char operator;  // For bin_ops
     int numberValue;    // For numbers
     char* string; // For strings
@@ -30,7 +29,6 @@ struct SyntaxNode {
     SyntaxNode* right;
 };
 
-bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b);
 void freeSyntaxTree(SyntaxNode* tree);
 
 // Structure used to wrap result trees and check for errors
@@ -40,6 +38,7 @@ struct ParseResult{
     bool hasError;
 };
 
-ParseResult parseStatement(SimplicError* error); // instruction
+// Parses a line of code from the token list and generates an AST used later for execution
+SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error);
 
 #endif
