@@ -1,7 +1,14 @@
 #include "unity.h"
 #include "unity_internals.h"
 
-#include "private_lexer.h"
+/*
+    Private functions of modules need to be static so they don't collide with other modules
+    However static functions can only be used by one translation unit. A translation unit is
+    composed o a file and its includes, thats why we include the source file in the tests, so
+    we can test its static functions
+*/
+
+#include "lexer.c"
 
 void setUp(void) {
     ;
@@ -76,8 +83,9 @@ void tokenLinkedListWorks(void){
 
     fflush(fake_stdout);
     fseek(fake_stdout, 0, SEEK_SET);
-    fread(buffer, 1, sizeof(buffer), fake_stdout);
-    buffer[strcspn(buffer, "\0")] = '\0';
+    
+    int n = fread(buffer, 1, sizeof(buffer) - 1, fake_stdout);
+    buffer[n] = '\0';
 
     stdout = original_stdout; // restore stdout
     fclose(fake_stdout);

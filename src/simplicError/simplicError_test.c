@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "unity_internals.h"
 
-#include "simplicError.h"
+#include "simplicError.c"
 
 void setUp(void) {
     ;

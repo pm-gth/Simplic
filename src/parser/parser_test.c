@@ -1,10 +1,7 @@
 #include "unity.h"
 #include "unity_internals.h"
 
-#include "lexer.h"
-#include "simplicError.h"
-#include "private_parser.h"
-
+#include "parser.c"
 
 void setUp(void) {
     ;

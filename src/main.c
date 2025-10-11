@@ -4,7 +4,7 @@
 int main(void) {
     const char* code =
         "SET X\n"
-        "PRINT X\n"
+        "PRINT Y\n"
         "INCR X\n"
         "PRINT X"
         ;
