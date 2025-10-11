@@ -27,6 +27,7 @@ struct Value {
     ValueType type;
     int integer;
     char* string;
+    bool receivedReturn;
 };
 
 

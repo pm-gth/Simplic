@@ -1,3 +1,4 @@
+#include "simplicError.h"
 #include "unity.h"
 #include "unity_internals.h"
 
@@ -64,11 +65,11 @@ void tokenLinkedListWorks(void){
     Token* myList;
     initTokenList(&myList);
 
-    addTokenToTail(&myList, TOKEN_PRINT, "One");
-    addTokenToTail(&myList, TOKEN_EQUALS, "Two");
-    addTokenToTail(&myList, TOKEN_NUMBER, "Three");
-    addTokenToTail(&myList, TOKEN_VAR, "Four");
-    addTokenToTail(&myList, TOKEN_EOF, "Five");
+    addTokenToTail(&myList, TOKEN_PRINT, "One", NULL);
+    addTokenToTail(&myList, TOKEN_EQUALS, "Two", NULL);
+    addTokenToTail(&myList, TOKEN_NUMBER, "Three", NULL);
+    addTokenToTail(&myList, TOKEN_VAR, "Four", NULL);
+    addTokenToTail(&myList, TOKEN_EOF, "Five", NULL);
 
     removeTokenFromHead(&myList);
 
@@ -98,20 +99,21 @@ void tokenizeWorks(){
     const char* program = "SET X = 34\n"
                           "PRINT X\0";
                           
+    SimplicError* error = initError();
     Token* myList; initTokenList(&myList);
     Token* testList; initTokenList(&testList);
 
-    addTokenToTail(&testList, TOKEN_SET, "SET");
-    addTokenToTail(&testList, TOKEN_VAR, "X");
-    addTokenToTail(&testList, TOKEN_EQUALS, "=");
-    addTokenToTail(&testList, TOKEN_NUMBER, "34");
-    addTokenToTail(&testList, TOKEN_NEWLINE, "\\n");
+    addTokenToTail(&testList, TOKEN_SET, "SET", NULL);
+    addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
+    addTokenToTail(&testList, TOKEN_EQUALS, "=", NULL);
+    addTokenToTail(&testList, TOKEN_NUMBER, "34", NULL);
+    addTokenToTail(&testList, TOKEN_NEWLINE, "\\n", NULL);
 
-    addTokenToTail(&testList, TOKEN_PRINT, "PRINT");
-    addTokenToTail(&testList, TOKEN_VAR, "X");
-    addTokenToTail(&testList, TOKEN_EOF, "");
+    addTokenToTail(&testList, TOKEN_PRINT, "PRINT", NULL);
+    addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
+    addTokenToTail(&testList, TOKEN_EOF, "", NULL);
 
-    tokenizeSource(&myList, program);
+    tokenizeSource(&myList, program, error);
 
     Token* currentToken = myList;
     Token* currentTestToken = testList;
@@ -140,7 +142,7 @@ void tokenizeWorks(){
     const char* errmsg = "Error: token list contents do not match its supposed values";
     
     while(currentToken != NULL){
-        TEST_ASSERT_EQUAL_STRING_MESSAGE(currentTestToken->text, currentToken->text, errmsg);
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(currentTestToken->name, currentToken->name, errmsg);
         TEST_ASSERT_TRUE_MESSAGE(currentTestToken->type == currentToken->type, errmsg);
 
         currentToken = currentToken->next;

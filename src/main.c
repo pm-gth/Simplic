@@ -15,26 +15,30 @@ int main(void) {
     SimplicError* error = initError();
 
     tokenizeSource(&tokenList, code, error);
-    
+
     for (;;) {
         ParseResult result = parseStatement(error);
 
         if (!result.node && !result.hasError)
-            break; // Reached EOF
+            break; // Reached EOF with no return
 
         if (result.hasError) {
             printError(error);
             break;
         }
 
-        eval(result.node, error);
+        Value val = eval(result.node, error);
+        freeSyntaxTree(result.node);
 
         if (error->hasError) {
             printError(error);
             break;
         }
 
-        freeSyntaxTree(result.node);
+        if (val.receivedReturn) {
+            printf("Program ended with return code: %d\n", val.integer);
+            break;
+        }
     }
 
     emptyTokenList(&tokenList);

@@ -1,3 +1,4 @@
+#include "private_parser.h"
 #include "unity.h"
 #include "unity_internals.h"
 
@@ -20,19 +21,19 @@ void testParseSet(void){
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
-        SyntaxNode* root = malloc(sizeof(SyntaxNode));
+        SyntaxNode* root = initNode();
         root->type = NODE_ASSIGN;
         strcpy(root->varName, "X");
 
-        root->right = malloc(sizeof(SyntaxNode));
+        root->right = initNode();
         root->right->type = NODE_BIN_OP;
         root->right->operator = '+';
 
-        root->right->right = malloc(sizeof(SyntaxNode));
+        root->right->right = initNode();
         root->right->right->type = NODE_NUMBER;
         root->right->right->numberValue = 1;
 
-        root->right->left = malloc(sizeof(SyntaxNode));
+        root->right->left = initNode();
         root->right->left->type = NODE_NUMBER;
         root->right->left->numberValue = 7;
 
@@ -53,10 +54,10 @@ void testParsePrint(void){
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
-        SyntaxNode* root = malloc(sizeof(SyntaxNode));
+        SyntaxNode* root = initNode();
         root->type = NODE_PRINT;
 
-        root->right = malloc(sizeof(SyntaxNode));
+        root->right = initNode();
         root->right->type = NODE_NUMBER;
         root->right->numberValue = 4;
 
@@ -90,11 +91,11 @@ void testParseSetDeclarationOnly(void){
     TEST_ASSERT_FALSE(result.hasError);
 
         // Premade correct tree
-        SyntaxNode* root = malloc(sizeof(SyntaxNode));
+        SyntaxNode* root = initNode();
         root->type = NODE_ASSIGN;
         strcpy(root->varName, "Y");
 
-        root->right = malloc(sizeof(SyntaxNode));
+        root->right = initNode();
         root->right->type = NODE_NUMBER;
         root->right->numberValue = 0;
 

@@ -58,8 +58,8 @@ unity.o: $(TEST_DIR)
 
 # ----------- TEST BINARIES -----------
 
-lexerTest: $(TEST_DIR) unity.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/lexer/ src/lexer/lexer_test.c $(TEST_DIR)/unity.o -o $(TEST_DIR)/lexerTest
+lexerTest: $(TEST_DIR) unity.o simplicError.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/lexer/ src/lexer/lexer_test.c $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/lexerTest
 
 parserTest: $(TEST_DIR) unity.o simplicError.o lexer.o
 	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/parser/ src/parser/parser_test.c $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/parserTest

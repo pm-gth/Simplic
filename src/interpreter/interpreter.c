@@ -176,12 +176,16 @@ void emptyMemoryBank() {
     }
 }
 
+Value eval_return(int n) {
+    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true };
+}
+
 Value eval_makeResultInt(int n) {
-    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL };
+    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = false };
 }
 
 Value eval_makeResultStr(char* s) {
-    Value res = { .type = VALUE_STR, .integer = 0, .string = NULL };
+    Value res = { .type = VALUE_STR, .integer = 0, .string = NULL, .receivedReturn = false };
     int len = strlen(s);
     res.string = malloc(sizeof(char)*(len+1));
     strcpy(res.string, s);
@@ -190,16 +194,16 @@ Value eval_makeResultStr(char* s) {
 }
 
 Value eval_makeResultVoid() {
-    return (Value){ .type = VALUE_VOID, .integer = 0, .string = NULL };
+    return (Value){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false };
 }
 
 Value eval_makeError(SimplicError* err, const char* msg, int code) {
-    return (Value){ .type = 0, .integer = 0, .string = NULL };
+    return (Value){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
     setError(err, msg, code);
 }
 
 Value eval_makeError_keepErrInfo(SimplicError* err) {
-    return (Value){ .type = 0, .integer = 0, .string = NULL };
+    return (Value){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
     setError(err, err->errMsg, err->errCode);
 }
 
@@ -307,7 +311,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
-            exit(val.integer);
+            eval_return(val.integer); // Sets a flag indicating that the last instruction was a return, used to stop eval()
         } else if (val.type == VALUE_STR) {
             return eval_makeError(error, "Tried to return a string", ERROR_MISC);
         }

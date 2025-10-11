@@ -26,6 +26,8 @@ static SyntaxNode* initNode() {
     res->left = NULL;
     res->right = NULL;
     res->type = 0;
+
+    return res;
 }
 
 void freeSyntaxTree(SyntaxNode* tree) {
