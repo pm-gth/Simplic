@@ -10,6 +10,6 @@ static bool isAlphaNumer(char c);
 
 // Creates a token, receives its type, name (in case it's a variable)
 // and a string in case in was a string literal
-Token* createToken(TokenType type, const char* name, char* string);
+static Token* createToken(TokenType type, const char* name, char* string);
 
 #endif

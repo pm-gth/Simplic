@@ -29,7 +29,7 @@ int main(void) {
             break;
         }
 
-        Value val = eval(result, error);
+        SimplicValue val = eval(result, error);
         freeSyntaxTree(result);
         
 

@@ -31,13 +31,6 @@ struct SyntaxNode {
 
 void freeSyntaxTree(SyntaxNode* tree);
 
-// Structure used to wrap result trees and check for errors
-typedef struct ParseResult ParseResult;
-struct ParseResult{
-    SyntaxNode* node;
-    bool hasError;
-};
-
 // Parses a line of code from the token list and generates an AST used later for execution
 SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error);
 

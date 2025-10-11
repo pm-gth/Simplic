@@ -3,6 +3,13 @@
 
 #include "parser.h"
 
+// Structure used to wrap result trees and check for errors
+typedef struct ParseResult ParseResult;
+struct ParseResult{
+    SyntaxNode* node;
+    bool hasError;
+};
+
 // Wrapper functions, used to return nodes or errors
 static ParseResult makeResult(SyntaxNode* n);
 static ParseResult makeError(SimplicError* err, const char* msg, int code);
@@ -18,6 +25,6 @@ static ParseResult parseFactor(Token** tokenList, SimplicError* error); // gener
 static ParseResult parseTerm(Token** tokenList, SimplicError* error); // takes care of * and / nodes
 static ParseResult parseExpr(Token** tokenList, SimplicError* error); // takes care of + and - nodes
 
-static SyntaxNode* initNode(); // Used to create a node, sets to NULL its fields
+static SyntaxNode* initNode(void); // Used to create a node, sets to NULL its fields
 
 #endif

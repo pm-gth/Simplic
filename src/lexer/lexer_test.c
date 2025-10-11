@@ -62,8 +62,7 @@ void isAlphaNumerWorks(void) {
 }
 
 void tokenLinkedListWorks(void){
-    Token* myList;
-    initTokenList(&myList);
+    Token* myList = initTokenList();
 
     addTokenToTail(&myList, TOKEN_PRINT, "One", NULL);
     addTokenToTail(&myList, TOKEN_EQUALS, "Two", NULL);
@@ -100,8 +99,8 @@ void tokenizeWorks(){
                           "PRINT X\0";
                           
     SimplicError* error = initError();
-    Token* myList; initTokenList(&myList);
-    Token* testList; initTokenList(&testList);
+    Token* myList = initTokenList();
+    Token* testList = initTokenList();
 
     addTokenToTail(&testList, TOKEN_SET, "SET", NULL);
     addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
@@ -151,6 +150,7 @@ void tokenizeWorks(){
 
     emptyTokenList(&myList);
     emptyTokenList(&testList);
+    deleteError(&error);
 }
 
 int main(void) {

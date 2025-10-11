@@ -2,7 +2,6 @@
 #include "private_interpreter.h"
 #include "parser.h"
 #include "simplicError.h"
-#include <stdbool.h>
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 
@@ -176,16 +175,16 @@ void emptyMemoryBank() {
     }
 }
 
-Value eval_return(int n) {
-    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true };
+SimplicValue eval_return(int n) {
+    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true };
 }
 
-Value eval_makeResultInt(int n) {
-    return (Value){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = false };
+SimplicValue eval_makeResultInt(int n) {
+    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = false };
 }
 
-Value eval_makeResultStr(char* s) {
-    Value res = { .type = VALUE_STR, .integer = 0, .string = NULL, .receivedReturn = false };
+SimplicValue eval_makeResultStr(char* s) {
+    SimplicValue res = { .type = VALUE_STR, .integer = 0, .string = NULL, .receivedReturn = false };
     int len = strlen(s);
     res.string = malloc(sizeof(char)*(len+1));
     strcpy(res.string, s);
@@ -193,25 +192,25 @@ Value eval_makeResultStr(char* s) {
     return res;
 }
 
-Value eval_makeResultVoid() {
-    return (Value){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false };
+SimplicValue eval_makeResultVoid() {
+    return (SimplicValue){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false };
 }
 
-Value eval_makeError(SimplicError* err, const char* msg, int code) {
-    return (Value){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
+SimplicValue eval_makeError(SimplicError* err, const char* msg, int code) {
+    return (SimplicValue){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
     setError(err, msg, code);
 }
 
-Value eval_makeError_keepErrInfo(SimplicError* err) {
-    return (Value){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
+SimplicValue eval_makeError_keepErrInfo(SimplicError* err) {
+    return (SimplicValue){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
     setError(err, err->errMsg, err->errCode);
 }
 
-Value eval(SyntaxNode* node, SimplicError* error) { 
+SimplicValue eval(SyntaxNode* node, SimplicError* error) { 
     if(error->hasError) return eval_makeError_keepErrInfo(error);
     if(node->type == NODE_NUMBER) return eval_makeResultInt(node->numberValue);
     if(node->type == NODE_STRING){
-        Value res = eval_makeResultStr(node->string);
+        SimplicValue res = eval_makeResultStr(node->string);
         return res;
     }
     if(node->type == NODE_VAR){
@@ -237,8 +236,8 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         }
     }
     if(node->type == NODE_BIN_OP){
-        Value l = eval(node->left, error);
-        Value r = eval(node->right, error);
+        SimplicValue l = eval(node->left, error);
+        SimplicValue r = eval(node->right, error);
         if(error->hasError) return eval_makeError_keepErrInfo(error);
 
         // String concat
@@ -247,8 +246,10 @@ Value eval(SyntaxNode* node, SimplicError* error) {
             char* buffer = malloc(sizeof(char)*(len+1));
             snprintf(buffer, len+1, "%s%s", l.string, r.string);
             
-            Value res = eval_makeResultStr(buffer);
+            SimplicValue res = eval_makeResultStr(buffer);
             free(buffer);
+            free(l.string); // We are done using the string values, so we free them
+            free(r.string);
             return res;
         }
 
@@ -257,7 +258,8 @@ Value eval(SyntaxNode* node, SimplicError* error) {
             char buffer[20]; // suficiente para un int normal
             snprintf(buffer, sizeof(buffer), "%s%d", l.string, r.integer);
 
-            Value res = eval_makeResultStr(buffer);
+            SimplicValue res = eval_makeResultStr(buffer);
+            free(l.string);
             return res;
         }
 
@@ -265,7 +267,8 @@ Value eval(SyntaxNode* node, SimplicError* error) {
             char buffer[20]; // suficiente para un int normal
             snprintf(buffer, sizeof(buffer), "%d%s", l.integer, r.string);
 
-            Value res = eval_makeResultStr(buffer);
+            SimplicValue res = eval_makeResultStr(buffer);
+            free(r.string);
             return res;
         }
 
@@ -283,7 +286,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         }
     }
     if(node->type == NODE_ASSIGN){
-        Value val = eval(node->right, error);
+        SimplicValue val = eval(node->right, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
 
         if (val.type == VALUE_INT) {
@@ -295,7 +298,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         return eval_makeResultVoid();
     }
     if(node->type == NODE_PRINT){
-        Value val = eval(node->right, error);
+        SimplicValue val = eval(node->right, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
@@ -307,7 +310,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
         return eval_makeResultVoid();
     }
     if(node->type == NODE_RETURN){
-        Value val = eval(node->right, error);
+        SimplicValue val = eval(node->right, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
@@ -318,7 +321,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
     }
 
     if(node->type == NODE_INCREMENT){
-        Value val = eval(node->right, error);
+        SimplicValue val = eval(node->right, error);
 
         if(val.type == VALUE_INT) {
             if (error->hasError) return eval_makeError_keepErrInfo(error);
@@ -330,7 +333,7 @@ Value eval(SyntaxNode* node, SimplicError* error) {
     }
 
     if(node->type == NODE_DECREMENT){
-        Value val = eval(node->right, error);
+        SimplicValue val = eval(node->right, error);
 
         if(val.type == VALUE_INT) {
             if (error->hasError) return eval_makeError_keepErrInfo(error);
