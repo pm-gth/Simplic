@@ -6,7 +6,7 @@
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 
-void initMemoryBank(){
+void initMemoryBank(void){
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
         MemoryBank[i] = NULL;
     }
@@ -22,6 +22,15 @@ unsigned long stringHash(const char *str){
     return hash % HASH_TABLE_SIZE;
 }
 
+MemoryCell* initMemCell(void) {
+    MemoryCell* res = malloc(sizeof(MemoryCell));
+    memset(res->name, 0, IDENTIFIER_SIZE);
+    res->next = NULL;
+    res->strPtr = NULL;
+    res->value = 0;
+
+    return res;
+}
 
 BankResult makeResultInt(int n) {
     return (BankResult){ .integer = n, .string = NULL, .hasError = false };
@@ -54,11 +63,10 @@ void insertInt(const char* key, int value) {
     }
 
     // Does not exist, create it
-    MemoryCell* newMemCell = malloc(sizeof(MemoryCell));
+    MemoryCell* newMemCell = initMemCell();
 
     strcpy(newMemCell->name, key);
     newMemCell->value = value;
-    newMemCell->strPtr = NULL;
     newMemCell->next = MemoryBank[index]; // In case there is a collision
     MemoryBank[index] = newMemCell;
 }
@@ -83,7 +91,7 @@ void insertStr(const char* key, const char* str) {
     }
 
     // Does not exist, create it
-    MemoryCell* newMemCell = malloc(sizeof(MemoryCell));
+    MemoryCell* newMemCell = initMemCell();
 
     strcpy(newMemCell->name, key);
 
@@ -93,7 +101,6 @@ void insertStr(const char* key, const char* str) {
     strcpy(newMemCell->strPtr, str);
 
     newMemCell->next = MemoryBank[index];  // In case there is a collision
-    newMemCell->value = -1;
     MemoryBank[index] = newMemCell;
 }
 

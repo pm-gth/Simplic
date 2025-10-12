@@ -22,6 +22,7 @@ struct BankResult {
 };
 
 // Wrapper functions for the bank, return values or errors
+static BankResult makeResultInt(int n);
 static BankResult makeResultStr(char* s);
 static BankResult makeError(SimplicError* err, const char* msg, int code);
 
@@ -32,6 +33,7 @@ static void insertInt(const char* key, int value);
 static void insertStr(const char* key, const char* str);
 
 // Get a variable from the bank
+static MemoryCell* initMemCell(void); // Creates a memory cell with its default values initialized
 static BankResult getInt(const char* key, SimplicError* error);
 static BankResult getStr(const char* key, SimplicError* error);
 static bool varIsInt(const char* key, SimplicError* error); // Checks if certain stored variable is an integer
