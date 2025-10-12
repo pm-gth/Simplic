@@ -205,6 +205,52 @@ void relationalOperationsLower(void) {
     free(val.string);
 }
 
+void equalityOperationsEqual(void) {
+     const char* program =
+        "SET X\n"
+        "RETURN X EQ 54 LT 3";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(1, val.integer);
+    free(val.string);
+}
+
+void equalityOperationsNotEqual(void) {
+     const char* program =
+        "SET X = 99 NEQ 0\n"
+        "RETURN X GT 0";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(1, val.integer);
+    free(val.string);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(testReturnCorrectInt);
@@ -215,5 +261,7 @@ int main(void) {
     RUN_TEST(stringAndNumberConcatenation);
     RUN_TEST(relationalOperationsGreater);
     RUN_TEST(relationalOperationsLower);
+    RUN_TEST(equalityOperationsEqual);
+    RUN_TEST(equalityOperationsNotEqual);
     return UNITY_END();
 }

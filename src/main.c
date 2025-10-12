@@ -12,8 +12,9 @@ int main(void) {
         ;
 
     const char* program =
-        "PRINT 53 + 1 GEQ 54\n"
-        "RETURN 0\n";
+        "SET X\n"
+        "SET Y = 54 LT 3\n"
+        "RETURN X EQ Y\n";
 
     Token* tokenList = initTokenList();
     initMemoryBank();

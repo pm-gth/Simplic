@@ -307,6 +307,10 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if ((strcmp(node->operator, "<=") == 0)){ return eval_makeResultInt((l.integer <= r.integer)? 1 : 0); }
         if ((strcmp(node->operator, ">") == 0)){ return eval_makeResultInt((l.integer > r.integer)? 1 : 0); }
         if ((strcmp(node->operator, ">=") == 0)){ return eval_makeResultInt((l.integer >= r.integer)? 1 : 0); }
+
+        // Equality operations
+        if ((strcmp(node->operator, "==") == 0)){ return eval_makeResultInt((l.integer == r.integer)? 1 : 0); }
+        if ((strcmp(node->operator, "!=") == 0)){ return eval_makeResultInt((l.integer != r.integer)? 1 : 0); }
     }
     if(node->type == NODE_ASSIGN){
         SimplicValue val = eval(node->right, error);

@@ -136,7 +136,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         } else{
             advance(tokenList); // consume '='
 
-            ParseResult expr = parseRelational(tokenList, error);
+            ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
             if (expr.hasError || !expr.node)
                 return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
 
@@ -154,7 +154,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Print node contains a right branch with the value to be printed
     if (t->type == TOKEN_PRINT) {
         advance(tokenList); // consume PRINT
-        ParseResult expr = parseRelational(tokenList, error);
+        ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
 
@@ -168,7 +168,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Print node contains a right branch with the value to be returned
     if (t->type == TOKEN_RETURN) {
         advance(tokenList); // consume RETURN
-        ParseResult expr = parseRelational(tokenList, error);
+        ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid RETURN expression", ERROR_INVALID_EXPR);
 
@@ -183,7 +183,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         TokenType oldType = t->type;
         advance(tokenList);
 
-        ParseResult expr = parseRelational(tokenList, error);
+        ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
 
@@ -353,6 +353,47 @@ ParseResult parseRelational(Token** tokenList, SimplicError* error) {
     }
 
     return left;
+}
+
+ParseResult parseEquality(Token** tokenList, SimplicError* error) {
+    ParseResult left = parseRelational(tokenList, error);
+    if (left.hasError) return left;
+
+    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
+    // first one is in the left child, second's in the right one
+    while (peek(tokenList)->type == TOKEN_EQ || peek(tokenList)->type == TOKEN_NEQ) {
+        TokenType oldType = peek(tokenList)->type;
+
+        advance(tokenList);
+        ParseResult right = parseRelational(tokenList, error);
+
+        if (right.hasError || !right.node)
+            return makeError(error, "Invalid right operand in equality comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+
+        SyntaxNode* n = initNode();
+        n->type = NODE_BIN_OP;
+        switch(oldType){
+            case TOKEN_EQ:
+                strcpy( n->operator, "==");
+                break;
+            case TOKEN_NEQ:
+                strcpy( n->operator, "!=");
+                break;
+            default:
+            ;
+        }
+        n->left = left.node;
+        n->right = right.node;
+
+        left.node = n;
+    }
+
+    return left;
+}
+
+// Wrapper, used to parse the lowest precedence operation
+ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* error) {
+    return parseEquality(tokenList, error);
 }
 
 SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {
