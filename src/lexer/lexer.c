@@ -192,6 +192,10 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			if (strcmp(buffer, "WHILE") == 0) { addTokenToTail(tokenList, TOKEN_WHILE, "WHILE", NULL); continue; }
 			if (strcmp(buffer, "DO") == 0) { addTokenToTail(tokenList, TOKEN_DO, "DO", NULL); continue; }
 			if (strcmp(buffer, "DONE") == 0) { addTokenToTail(tokenList, TOKEN_DONE, "DONE", NULL); continue; }
+			if (strcmp(buffer, "IF") == 0) { addTokenToTail(tokenList, TOKEN_IF, "IF", NULL); continue; }
+			if (strcmp(buffer, "THEN") == 0) { addTokenToTail(tokenList, TOKEN_THEN, "THEN", NULL); continue; }
+			if (strcmp(buffer, "ELSE") == 0) { addTokenToTail(tokenList, TOKEN_ELSE, "ELSE", NULL); continue; }
+			if (strcmp(buffer, "FI") == 0) { addTokenToTail(tokenList, TOKEN_FI, "FI", NULL); continue; }
 			addTokenToTail(tokenList, TOKEN_VAR, buffer, NULL); continue;
 		}
 

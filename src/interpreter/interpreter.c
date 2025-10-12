@@ -435,15 +435,35 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
     // Executes a code block while condition evaluates true
     if (node->type == NODE_WHILE) {
         while (1) {
-            SimplicValue cond = eval(node->left, error);
+            SimplicValue cond = eval(node->left, error); // Condition
             if (error->hasError) return eval_makeError_keepErrInfo(error);
             if (cond.type != VALUE_INT)
                 return eval_makeError(error, ERROR_TYPE_MISMATCH, "WHILE condition must be integer");
             if (!cond.integer) break;
 
+            SimplicValue body = eval(node->right, error); // Body
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+            if (body.receivedReturn) return body; // Propagate RETURN
+        }
+        return eval_makeResultVoid();
+    }
+
+    // Executes a code block if the condition is true; if it's false and there's another code block, execute that one
+    if (node->type == NODE_IF) {
+        SimplicValue cond = eval(node->left, error); // Condition
+        if (error->hasError) return eval_makeError_keepErrInfo(error);
+        if (cond.type != VALUE_INT)
+                return eval_makeError(error, ERROR_TYPE_MISMATCH, "IF condition must be integer");
+
+        if (cond.integer) {
             SimplicValue body = eval(node->right, error);
             if (error->hasError) return eval_makeError_keepErrInfo(error);
-            if (body.receivedReturn) return body;
+            if (body.receivedReturn) return body; // Propagate RETURN
+        } else if(node->middle != NULL) {
+            // There is an ELSE block
+            SimplicValue body = eval(node->middle, error);
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+            if (body.receivedReturn) return body; // Propagate RETURN
         }
         return eval_makeResultVoid();
     }

@@ -32,7 +32,8 @@ typedef enum {
     NODE_DECREMENT,
     NODE_BIN_OP,
     NODE_BLOCK,
-    NODE_WHILE
+    NODE_WHILE,
+    NODE_IF
 } NodeType;
 
 // AST nodes, with different nodes to account for different tokens (vars, loops, instructions...)
@@ -46,6 +47,7 @@ struct SyntaxNode {
     SyntaxNode** blockStatements; // For blocks of code
     SyntaxNode* left;
     SyntaxNode* right;
+    SyntaxNode* middle;
 };
 
 void freeSyntaxTree(SyntaxNode* tree);

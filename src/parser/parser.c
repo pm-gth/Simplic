@@ -3,11 +3,11 @@
 #include "lexer.h"
 #include "simplicError.h"
 
-Token* peek(Token** tokenList){
+Token* peek(Token** tokenList) {
     return *tokenList;
 }
 
-Token advance(Token** tokenList){
+Token advance(Token** tokenList) {
     Token copy;
     copy.type = (*tokenList)->type;
     copy.next = (*tokenList)->next;
@@ -18,6 +18,28 @@ Token advance(Token** tokenList){
     return copy;
 }
 
+TokenType findIfBlockDelimiter(Token** tokenList) {
+    Token* curr = *tokenList;
+    int depth = 0;
+
+    while (curr != NULL) {
+        if (curr->type == TOKEN_IF) {
+            depth++;
+        } else if (curr->type == TOKEN_FI) {
+            if (depth == 0) {
+                return TOKEN_FI;
+            } else {
+                depth--;
+            }
+        } else if (curr->type == TOKEN_ELSE && depth == 0) {
+            return TOKEN_ELSE;
+        }
+        curr = curr->next;
+    }
+    return TOKEN_ERROR_TOKEN;
+}
+
+
 static SyntaxNode* initNode() {
     SyntaxNode* res = malloc(sizeof(SyntaxNode));
     res->numberValue = 0;
@@ -25,6 +47,7 @@ static SyntaxNode* initNode() {
     res->string = NULL;
     res->left = NULL;
     res->right = NULL;
+    res->middle = NULL;
     res->blockStatements = NULL;
     res->type = 0;
 
@@ -59,6 +82,12 @@ void freeSyntaxTree(SyntaxNode* tree) {
                 freeSyntaxTree(tree->blockStatements[i++]);
             }
             free(tree->blockStatements); // Free list of ASts
+            break;
+
+        case NODE_IF:
+            freeSyntaxTree(tree->left);
+            freeSyntaxTree(tree->right);
+            freeSyntaxTree(tree->middle);
             break;
 
         case NODE_ASSIGN:
@@ -117,8 +146,10 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
             // One is larger than the other
             if (a->blockStatements[i] != NULL || b->blockStatements[i] != NULL)
                 return false;
+            return true;
 
-        return true;
+        case NODE_IF:
+            return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right) && compareSyntaxTree(a->middle, b->middle);
 
         case NODE_ASSIGN:
         case NODE_PRINT:
@@ -176,6 +207,14 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 
     // Block end, return NULL
     if (t->type == TOKEN_DONE) {
+        return (ParseResult){ .node = NULL, .hasError = false };
+    }
+
+    if (t->type == TOKEN_FI) {
+        return (ParseResult){ .node = NULL, .hasError = false };
+    }
+
+    if (t->type == TOKEN_ELSE) {
         return (ParseResult){ .node = NULL, .hasError = false };
     }
 
@@ -280,6 +319,45 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         n->type = NODE_WHILE;
         n->left = cond.node;
         n->right = body;
+        return makeResult(n);
+    }
+
+    // If code contains the exit condition as its left child, the if block code at the right, and a middle block of code if there is an else
+    if (t->type == TOKEN_IF) {
+        advance(tokenList); // consume IF
+        // Condition
+        ParseResult cond = parseLowestPrecedenceOperation(tokenList, error);
+        if (cond.hasError || !cond.node)
+            return makeError_keepErrInfo(error);
+
+        if (peek(tokenList)->type != TOKEN_THEN)
+            return makeError(error, ERROR_MISC, "IF missing THEN keyword, instead recived %s", peek(tokenList)->name);
+        advance(tokenList); // consume THEN
+
+        // Determine if block delimiter is FI or ELSE
+        TokenType blockDelimiter = findIfBlockDelimiter(tokenList);
+        if(blockDelimiter == TOKEN_ERROR_TOKEN)
+            return makeError(error, ERROR_NON_TERMINATED_BLOCK, "IF missing delimiter keyword");
+
+        // If body, will be executed if condition is true
+        SyntaxNode* ifBody = parseBlock(tokenList, error, blockDelimiter);
+
+        if (error->hasError || !ifBody)
+            makeError_keepErrInfo(error);
+
+        // If delimiter was else, we store a second body that will be executed if condition is false
+        SyntaxNode* elseBody = NULL;
+        if(blockDelimiter == TOKEN_ELSE) {
+            elseBody = parseBlock(tokenList, error, TOKEN_FI);
+            if (error->hasError || !elseBody)
+                makeError_keepErrInfo(error);
+        }
+
+        SyntaxNode* n = initNode();
+        n->type = NODE_IF;
+        n->left = cond.node;
+        n->right = ifBody;
+        n->middle = elseBody;
         return makeResult(n);
     }
 

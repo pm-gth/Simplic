@@ -13,6 +13,7 @@
 #include "simplicError.h"
 
 typedef enum {
+    TOKEN_ERROR_TOKEN, // For error handling
     TOKEN_SET,
     TOKEN_UNSET,
     TOKEN_PRINT,
@@ -40,6 +41,10 @@ typedef enum {
     TOKEN_WHILE,
     TOKEN_DO,
     TOKEN_DONE,
+    TOKEN_IF,
+    TOKEN_THEN,
+    TOKEN_ELSE,
+    TOKEN_FI,
     TOKEN_EOF
 } TokenType;
 

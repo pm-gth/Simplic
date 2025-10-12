@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     
-    printf("Script %s contents:\n%s\n", argv[1], program);
+    printf("Script %s contents:\n%s\n\nProgram Output:\n\n", argv[1], program);
     
     Token* tokenList = initTokenList();
     initMemoryBank();
