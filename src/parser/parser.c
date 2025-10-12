@@ -391,9 +391,45 @@ ParseResult parseEquality(Token** tokenList, SimplicError* error) {
     return left;
 }
 
+ParseResult parseLogical(Token** tokenList, SimplicError* error) {
+    ParseResult left = parseEquality(tokenList, error);
+    if (left.hasError) return left;
+
+    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
+    // first one is in the left child, second's in the right one
+    while (peek(tokenList)->type == TOKEN_AND || peek(tokenList)->type == TOKEN_OR) {
+        TokenType oldType = peek(tokenList)->type;
+
+        advance(tokenList);
+        ParseResult right = parseEquality(tokenList, error);
+
+        if (right.hasError || !right.node)
+            return makeError(error, "Invalid right operand in logical comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+
+        SyntaxNode* n = initNode();
+        n->type = NODE_BIN_OP;
+        switch(oldType){
+            case TOKEN_AND:
+                strcpy( n->operator, "&&");
+                break;
+            case TOKEN_OR:
+                strcpy( n->operator, "||");
+                break;
+            default:
+            ;
+        }
+        n->left = left.node;
+        n->right = right.node;
+
+        left.node = n;
+    }
+
+    return left;
+}
+
 // Wrapper, used to parse the lowest precedence operation
 ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* error) {
-    return parseEquality(tokenList, error);
+    return parseLogical(tokenList, error);
 }
 
 SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {

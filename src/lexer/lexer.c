@@ -187,6 +187,8 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			if (strcmp(buffer, "LEQ") == 0) { addTokenToTail(tokenList, TOKEN_LEQ, "LEQ", NULL); continue; }
 			if (strcmp(buffer, "EQ") == 0) { addTokenToTail(tokenList, TOKEN_EQ, "EQ", NULL); continue; }
 			if (strcmp(buffer, "NEQ") == 0) { addTokenToTail(tokenList, TOKEN_NEQ, "NEQ", NULL); continue; }
+			if (strcmp(buffer, "AND") == 0) { addTokenToTail(tokenList, TOKEN_AND, "AND", NULL); continue; }
+			if (strcmp(buffer, "OR") == 0) { addTokenToTail(tokenList, TOKEN_OR, "OR", NULL); continue; }
 			addTokenToTail(tokenList, TOKEN_VAR, buffer, NULL); continue;
 		}
 

@@ -26,6 +26,7 @@ static ParseResult parseTerm(Token** tokenList, SimplicError* error); // takes c
 static ParseResult parseExpr(Token** tokenList, SimplicError* error); // takes care of + and - nodes
 static ParseResult parseRelational(Token** tokenList, SimplicError* error); // Takes care of relational comparisons (<, >, <=, >=)
 static ParseResult parseEquality(Token** tokenList, SimplicError* error); // Takes care of equality ops == and !=
+static ParseResult parseLogical(Token** tokenList, SimplicError* error); // Takes care of logical ops && and ||
 static ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* error); // Wrapper to call lowest priority parsing
 
 static SyntaxNode* initNode(void); // Used to create a node, sets to NULL its fields
