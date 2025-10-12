@@ -33,7 +33,7 @@ void printError(SimplicError* error){
                 return;
         }
 
-        printf("Error: %s\n", error->errMsg);
+        printf("\nError: %s\n", error->errMsg);
 }
 
 void unsetError(SimplicError* error){

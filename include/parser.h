@@ -23,6 +23,7 @@ typedef enum {
     NODE_ASSIGN,
     NODE_UNASSIGN,
     NODE_PRINT,
+    NODE_PRINTLN,
     NODE_RETURN,
     NODE_NUMBER,
     NODE_STRING,

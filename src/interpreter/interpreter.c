@@ -333,14 +333,15 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         return eval_makeResultVoid();
     }
-    if(node->type == NODE_PRINT){
+    if(node->type == NODE_PRINT || node->type == NODE_PRINTLN){
         SimplicValue val = eval(node->right, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
-        
+        const char* delimiter = (node->type == NODE_PRINTLN)? "\n" : ""; // Add \n if PRINTLN
+
         if (val.type == VALUE_INT) {
-            printf("%d\n", val.integer);
+            printf("%d%s", val.integer, delimiter);
         } else if (val.type == VALUE_STR) {
-            printf("%s\n", val.string);
+            printf("%s%s", val.string, delimiter);
             free(val.string);
         }
         return eval_makeResultVoid();

@@ -51,6 +51,7 @@ void freeSyntaxTree(SyntaxNode* tree) {
 
         case NODE_ASSIGN:
         case NODE_PRINT:
+        case NODE_PRINTLN:
         case NODE_RETURN:
         case NODE_INCREMENT:
         case NODE_DECREMENT:
@@ -93,6 +94,7 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
 
         case NODE_ASSIGN:
         case NODE_PRINT:
+        case NODE_PRINTLN:
         case NODE_RETURN:
         case NODE_INCREMENT:
         case NODE_DECREMENT:
@@ -165,14 +167,15 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     }
 
     // Print node contains a right branch with the value to be printed
-    if (t->type == TOKEN_PRINT) {
+    if (t->type == TOKEN_PRINT || t->type == TOKEN_PRINTLN) {
+        TokenType oldType = peek(tokenList)->type;
         advance(tokenList); // consume PRINT
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
 
         SyntaxNode* n = initNode();
-        n->type = NODE_PRINT;
+        n->type = (oldType == TOKEN_PRINT)? NODE_PRINT : NODE_PRINTLN;
         n->right = expr.node;
 
         return makeResult(n);

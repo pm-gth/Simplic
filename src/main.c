@@ -13,8 +13,9 @@ int main(void) {
 
     const char* program =
         "SET X = 7\n"
-        "SET X = X + 1\n"
         "PRINT X\n"
+        "PRINT \" \" + X\n"
+        "PRINTLN \"\"\n"
         ;
 
     Token* tokenList = initTokenList();

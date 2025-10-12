@@ -179,6 +179,7 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			if (strcmp(buffer, "SET") == 0) { addTokenToTail(tokenList, TOKEN_SET, "SET", NULL); continue; }
 			if (strcmp(buffer, "UNSET") == 0) { addTokenToTail(tokenList, TOKEN_UNSET, "UNSET", NULL); continue; }
 			if (strcmp(buffer, "PRINT") == 0) { addTokenToTail(tokenList, TOKEN_PRINT, "PRINT", NULL); continue; }
+			if (strcmp(buffer, "PRINTLN") == 0) { addTokenToTail(tokenList, TOKEN_PRINTLN, "PRINTLN", NULL); continue; }
 			if (strcmp(buffer, "RETURN") == 0) { addTokenToTail(tokenList, TOKEN_RETURN, "RETURN", NULL); continue; }
 			if (strcmp(buffer, "INCR") == 0) { addTokenToTail(tokenList, TOKEN_INCREMENT, "INCR", NULL); continue; }
 			if (strcmp(buffer, "DECR") == 0) { addTokenToTail(tokenList, TOKEN_DECREMENT, "DECR", NULL); continue; }
