@@ -31,8 +31,8 @@ $(TEST_DIR):
 
 # ----------- BUILD TARGETS -----------
 
-simplic: $(BUILD_DIR) lexer.o simplicError.o parser.o interpreter.o main.o
-	$(CC) $(CFLAGS) $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
+simplic: $(BUILD_DIR) lexer.o simplicError.o parser.o interpreter.o scriptReader.o main.o
+	$(CC) $(CFLAGS) $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
 
 run: simplic
 	./$(BUILD_DIR)/simplic
@@ -50,6 +50,9 @@ parser.o: $(BUILD_DIR)
 
 interpreter.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/interpreter -c src/interpreter/interpreter.c -o $(BUILD_DIR)/interpreter.o
+
+scriptReader.o: $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c src/scriptReader/scriptReader.c -o $(BUILD_DIR)/scriptReader.o
 
 main.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c src/main.c -o $(BUILD_DIR)/main.o

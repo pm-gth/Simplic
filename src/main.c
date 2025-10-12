@@ -1,34 +1,21 @@
 #include "interpreter.h"
 #include "lexer.h"
 #include "simplicError.h"
+#include "scriptReader.h"
 
-int main(void) {
-    const char* programA =
-        "SET X = 8 * 2 + 3\n"
-        "INCR X\n"
-        "SET Y = \"El resultado es: \"\n"
-        "PRINT Y + X\n"
-        "RETURN 0\n"
-        ;
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <file>\n", argv[0]);
+        return 1;
+    }
 
-    const char* program =
-        "SET X = 0\n"
-        "SET Y = 0\n"
-        "SET ITERS = 0\n"
-        "WHILE X LT 5 DO\n"
-            "WHILE Y LT 5 DO\n"
-                "INCR Y\n"
-                "INCR ITERS\n"
-            "DONE\n"
-            "SET Y = 0\n"
-            "INCR X\n"
-            "INCR ITERS\n"
-        "DONE\n"
-        "RETURN ITERS\n";
-
+    SimplicError* error = initError();
+    const char* program = readScriptFile(argv[1], error);
+    
+    printf("Script %s contents:\n%s\n", argv[1], program);
+    
     Token* tokenList = initTokenList();
     initMemoryBank();
-    SimplicError* error = initError();
     SimplicValue val;
 
     tokenizeSource(&tokenList, program, error);

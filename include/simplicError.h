@@ -24,6 +24,7 @@ typedef enum {
     ERROR_NON_TERMINATED_STRING_LITERAL,
     ERROR_NON_TERMINATED_BLOCK,
     ERROR_TYPE_MISMATCH,
+    ERROR_READING_SCRIPT_FILE,
     ERROR_MISC // Do not bother with these
 } SimplicErrorType;
 
