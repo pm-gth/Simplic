@@ -13,7 +13,7 @@ void tearDown(void) {
 
 void testErrorSet(void){
     SimplicError* error = initError();
-    setError(error, "This is a test error", ERROR_DIVISION_BY_ZERO);
+    setError(error, ERROR_DIVISION_BY_ZERO, "This is a test error");
 
     TEST_ASSERT_TRUE(error->hasError);
     TEST_ASSERT_EQUAL_STRING("This is a test error", error->errMsg);
@@ -24,8 +24,8 @@ void testErrorSet(void){
 
 void testErrorOverride(void){
     SimplicError* error = initError();
-    setError(error, "This is a test error", ERROR_DIVISION_BY_ZERO);
-    setError(error, "New error", ERROR_UNKNOWN_INSTRUCTION);
+    setError(error, ERROR_DIVISION_BY_ZERO, "This is a test error");
+    setError(error, ERROR_UNKNOWN_INSTRUCTION, "New error");
 
     TEST_ASSERT_TRUE(error->hasError);
     TEST_ASSERT_EQUAL_STRING("New error", error->errMsg);
@@ -36,7 +36,7 @@ void testErrorOverride(void){
 
 void testErrorUnset(void){
     SimplicError* error = initError();
-    setError(error, "This is a test error", ERROR_DIVISION_BY_ZERO);
+    setError(error, ERROR_DIVISION_BY_ZERO, "This is a test error");
     unsetError(error);
 
     TEST_ASSERT_FALSE(error->hasError);
@@ -48,7 +48,7 @@ void testErrorUnset(void){
 
 void testErrorDelete(void){
     SimplicError* error = initError();
-    setError(error, "This is a test error", ERROR_DIVISION_BY_ZERO);
+    setError(error, ERROR_DIVISION_BY_ZERO, "This is a test error");
 
     deleteError(&error);
     TEST_ASSERT_TRUE(error == NULL);

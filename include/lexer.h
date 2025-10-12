@@ -37,7 +37,9 @@ typedef enum {
     TOKEN_OR,
     TOKEN_INCREMENT,
     TOKEN_DECREMENT,
-    TOKEN_NEWLINE,
+    TOKEN_WHILE,
+    TOKEN_DO,
+    TOKEN_DONE,
     TOKEN_EOF
 } TokenType;
 

@@ -30,7 +30,9 @@ typedef enum {
     NODE_VAR,
     NODE_INCREMENT,
     NODE_DECREMENT,
-    NODE_BIN_OP
+    NODE_BIN_OP,
+    NODE_BLOCK,
+    NODE_WHILE
 } NodeType;
 
 // AST nodes, with different nodes to account for different tokens (vars, loops, instructions...)
@@ -41,6 +43,7 @@ struct SyntaxNode {
     char operator[BIN_OP_OPERATOR_SIZE];  // For bin_ops
     int numberValue;    // For numbers
     char* string; // For strings
+    SyntaxNode** blockStatements; // For blocks of code
     SyntaxNode* left;
     SyntaxNode* right;
 };

@@ -12,10 +12,20 @@ int main(void) {
         ;
 
     const char* program =
-        "SET X = 7\n"
-        "PRINT X\n"
-        "PRINT \" \" + X\n"
-        "PRINTLN \"\"\n"
+        "SET X = 0\n"
+        "SET Y = 0"
+        "WHILE X LT 5\n"
+        "DO\n"
+            "INCR X\n"
+            "WHILE Y LT 3\n"
+            "DO\n"
+                "INCR Y\n"
+                "PRINTLN \"Y: \" + Y\n"
+            "DONE\n"
+            "PRINTLN X\n"
+            "SET Y = 0\n"
+        "DONE\n"
+        "RETURN RES\n"
         ;
 
     Token* tokenList = initTokenList();

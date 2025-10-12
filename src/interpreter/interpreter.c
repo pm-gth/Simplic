@@ -41,8 +41,28 @@ BankResult makeResultStr(char* s) {
     return (BankResult){ .integer = 0, .string = s, .hasError = false };
 }
 
-BankResult makeError(SimplicError* err, const char* msg, int code) {
-    setError(err, msg, code);
+BankResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...) {
+    if (err != NULL) {
+        va_list args;
+        va_start(args, fmt);
+
+        // msg len
+        int len = vsnprintf(NULL, 0, fmt, args);
+        va_end(args);
+
+        if (len >= 0) {
+            char* buffer = malloc(len + 1);
+            if (buffer != NULL) {
+                va_start(args, fmt);
+                vsnprintf(buffer, len + 1, fmt, args);
+                va_end(args);
+
+                setError(err, code, "%s", buffer);
+                free(buffer);
+            }
+        }
+    }
+
     return (BankResult){ .integer = -1, .string = NULL, .hasError = true };
 }
 
@@ -115,7 +135,7 @@ BankResult getInt(const char* key, SimplicError* error) {
         }
         current = current->next;
     }
-    return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    return makeError(error, ERROR_ACCESS_TO_UNDECLARED_VAR, "Variable %s not initialized", key);
 }
 
 bool varIsInt(const char* key, SimplicError* error) {
@@ -127,7 +147,7 @@ bool varIsInt(const char* key, SimplicError* error) {
         }
         current = current->next;
     }
-    setError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    setError(error, ERROR_ACCESS_TO_UNDECLARED_VAR, "Variable %s not initialized", key);
     return false;
 }
 
@@ -140,7 +160,7 @@ BankResult getStr(const char* key, SimplicError* error) {
         }
         current = current->next;
     }
-    return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    return makeError(error, ERROR_ACCESS_TO_UNDECLARED_VAR, "Variable %s not initialized", key);
 }
 
 BankResult deleteVariable(const char* key, SimplicError* error) {
@@ -165,7 +185,7 @@ BankResult deleteVariable(const char* key, SimplicError* error) {
         prev = current;
         current = current->next;
     }
-    return makeError(error, "Tried to unset undeclared variable", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    return makeError(error, ERROR_ACCESS_TO_UNDECLARED_VAR, "Tried to unset undeclared variable %s", key);
 }
 
 void emptyMemoryBank() {
@@ -209,14 +229,34 @@ SimplicValue eval_makeResultVoid() {
     return (SimplicValue){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false };
 }
 
-SimplicValue eval_makeError(SimplicError* err, const char* msg, int code) {
+SimplicValue eval_makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...) {
+    if (err != NULL) {
+        va_list args;
+        va_start(args, fmt);
+
+        // msg len
+        int len = vsnprintf(NULL, 0, fmt, args);
+        va_end(args);
+
+        if (len >= 0) {
+            char* buffer = malloc(len + 1);
+            if (buffer != NULL) {
+                va_start(args, fmt);
+                vsnprintf(buffer, len + 1, fmt, args);
+                va_end(args);
+
+                setError(err, code, "%s", buffer);
+                free(buffer);
+            }
+        }
+    }
+
     return (SimplicValue){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
-    setError(err, msg, code);
 }
 
 SimplicValue eval_makeError_keepErrInfo(SimplicError* err) {
     return (SimplicValue){ .type = 0, .integer = 0, .string = NULL, .receivedReturn = false };
-    setError(err, err->errMsg, err->errCode);
+    setError(err, err->errCode, err->errMsg );
 }
 
 SimplicValue eval(SyntaxNode* node, SimplicError* error) { 
@@ -295,7 +335,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if ((strcmp(node->operator, "*") == 0)) return eval_makeResultInt(l.integer * r.integer);
         if ((strcmp(node->operator, "/") == 0)) {
             if(r.integer == 0){
-                return eval_makeError(error, "Division by 0, execution halted", ERROR_DIVISION_BY_ZERO);
+                return eval_makeError(error, ERROR_DIVISION_BY_ZERO, "Division by 0, execution halted");
             } else {
                 return eval_makeResultInt(l.integer / r.integer);
             }
@@ -381,5 +421,32 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         return eval_makeResultVoid();
     }
 
-    return eval_makeError(error, "Tried to evaluate unknown type node", ERROR_MISC);
+    // Executes all the statements inside a code block, these are stores in a null-delimited array of ASTs
+    if (node->type == NODE_BLOCK) {
+        int i = 0;
+        while (node->blockStatements[i] != NULL) {
+            SimplicValue res = eval(node->blockStatements[i++], error);
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+            if (res.receivedReturn) return res; // Propagate RETURN
+        }
+        return eval_makeResultVoid();
+    }
+
+    // Executes a code block while condition evaluates true
+    if (node->type == NODE_WHILE) {
+        while (1) {
+            SimplicValue cond = eval(node->left, error);
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+            if (cond.type != VALUE_INT)
+                return eval_makeError(error, ERROR_TYPE_MISMATCH, "WHILE condition must be integer");
+            if (!cond.integer) break;
+
+            SimplicValue body = eval(node->right, error);
+            if (error->hasError) return eval_makeError_keepErrInfo(error);
+            if (body.receivedReturn) return body;
+        }
+        return eval_makeResultVoid();
+    }
+
+    return eval_makeError(error, ERROR_MISC, "Tried to evaluate unknown node of type: %d", node->type);
 }

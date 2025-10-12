@@ -25,12 +25,15 @@ static SyntaxNode* initNode() {
     res->string = NULL;
     res->left = NULL;
     res->right = NULL;
+    res->blockStatements = NULL;
     res->type = 0;
 
     return res;
 }
 
 void freeSyntaxTree(SyntaxNode* tree) {
+    int i;
+
     if (tree == NULL)
         return;
 
@@ -45,8 +48,17 @@ void freeSyntaxTree(SyntaxNode* tree) {
             break;
 
         case NODE_BIN_OP:
+        case NODE_WHILE:
             freeSyntaxTree(tree->left);
             freeSyntaxTree(tree->right);
+            break;
+
+        case NODE_BLOCK: // Array of ASTs
+            i = 0;
+            while (tree->blockStatements[i] != NULL) { // Free each AST
+                freeSyntaxTree(tree->blockStatements[i++]);
+            }
+            free(tree->blockStatements); // Free list of ASts
             break;
 
         case NODE_ASSIGN:
@@ -70,6 +82,7 @@ void freeSyntaxTree(SyntaxNode* tree) {
 }
 
 bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
+    int i;
     if (a == NULL && b == NULL) return true;
     if (a == NULL || b == NULL) return false;
 
@@ -90,7 +103,22 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
             return strcmp(a->string, b->string) == 0;
 
         case NODE_BIN_OP:
+        case NODE_WHILE:
             return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right);
+
+        case NODE_BLOCK:
+            i = 0;
+            while (a->blockStatements[i] != NULL && b->blockStatements[i] != NULL) {
+                if (!compareSyntaxTree(a->blockStatements[i], b->blockStatements[i]))
+                    return false;
+                i++;
+                }
+
+            // One is larger than the other
+            if (a->blockStatements[i] != NULL || b->blockStatements[i] != NULL)
+                return false;
+
+        return true;
 
         case NODE_ASSIGN:
         case NODE_PRINT:
@@ -112,17 +140,47 @@ ParseResult makeResult(SyntaxNode* n) {
     return (ParseResult){ .node = n, .hasError = false };
 }
 
-ParseResult makeError(SimplicError* err, const char* msg, int code) {
-    setError(err, msg, code);
+ParseResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...) {
+    if (err != NULL) {
+        va_list args;
+        va_start(args, fmt);
+
+        // msg len
+        int len = vsnprintf(NULL, 0, fmt, args);
+        va_end(args);
+
+        if (len >= 0) {
+            char* buffer = malloc(len + 1);
+            if (buffer != NULL) {
+                va_start(args, fmt);
+                vsnprintf(buffer, len + 1, fmt, args);
+                va_end(args);
+
+                setError(err, code, "%s", buffer);
+                free(buffer);
+            }
+        }
+    }
+
     return (ParseResult){ .node = NULL, .hasError = true };
+}
+
+ParseResult makeError_keepErrInfo(SimplicError* err) {
+    return makeError(err, err->errCode, err->errMsg);
 }
 
 ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     Token* t = peek(tokenList);
 
-    if (t->type == TOKEN_NEWLINE) {
-        advance(tokenList);
-        return parseStatement(tokenList, error);
+    if (!t) return makeError(error, ERROR_UNKNOWN_INSTRUCTION, "Unexpected end of token list");
+
+    // Block end, return NULL
+    if (t->type == TOKEN_DONE) {
+        return (ParseResult){ .node = NULL, .hasError = false };
+    }
+
+    if (t->type == TOKEN_EOF) {
+        return (ParseResult){ .node = NULL, .hasError = false };
     }
 
     // Set node contain the target's var name and a right branch with its new value (in form of factor or expression)
@@ -137,17 +195,14 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
             valueNode = initNode();
             valueNode->type = NODE_NUMBER;
             valueNode->numberValue = 0;
-        } else{
+        } else {
             advance(tokenList); // consume '='
-
             ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
             if (expr.hasError || !expr.node)
-                return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
-
+                return makeError(error, ERROR_INVALID_EXPR, "Invalid expression in SET statement");
             valueNode = expr.node;
         }
 
-        
         SyntaxNode* n = initNode();
         n->type = NODE_ASSIGN;
         strcpy(n->varName, var.name);
@@ -159,7 +214,6 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     if (t->type == TOKEN_UNSET) {
         advance(tokenList); // consume UNSET
         Token var = advance(tokenList); // variable name
-        
         SyntaxNode* n = initNode();
         n->type = NODE_UNASSIGN;
         strcpy(n->varName, var.name);
@@ -168,16 +222,14 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 
     // Print node contains a right branch with the value to be printed
     if (t->type == TOKEN_PRINT || t->type == TOKEN_PRINTLN) {
-        TokenType oldType = peek(tokenList)->type;
+        TokenType oldType = t->type;
         advance(tokenList); // consume PRINT
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
-            return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
-
+            return makeError(error, ERROR_INVALID_EXPR, "Invalid PRINT expression");
         SyntaxNode* n = initNode();
-        n->type = (oldType == TOKEN_PRINT)? NODE_PRINT : NODE_PRINTLN;
+        n->type = (oldType == TOKEN_PRINT) ? NODE_PRINT : NODE_PRINTLN;
         n->right = expr.node;
-
         return makeResult(n);
     }
 
@@ -186,8 +238,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         advance(tokenList); // consume RETURN
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
-            return makeError(error, "Invalid RETURN expression", ERROR_INVALID_EXPR);
-
+            return makeError(error, ERROR_INVALID_EXPR, "Invalid RETURN expression");
         SyntaxNode* n = initNode();
         n->type = NODE_RETURN;
         n->right = expr.node;
@@ -198,24 +249,43 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
         advance(tokenList);
-
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
-            return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
-
+            return makeError(error, ERROR_INVALID_EXPR, "Invalid expression in INCR/DECR statement");
         SyntaxNode* n = initNode();
-        n->type = (oldType == TOKEN_INCREMENT)? NODE_INCREMENT : NODE_DECREMENT;
+        n->type = (oldType == TOKEN_INCREMENT) ? NODE_INCREMENT : NODE_DECREMENT;
         n->right = expr.node;
-
         return makeResult(n);
     }
 
-    if (t->type == TOKEN_EOF) {
-        return (ParseResult){ .node = NULL, .hasError = false };
+    // While code contains the exit condition as its left child and the block of code as its right child
+    if (t->type == TOKEN_WHILE) {
+        advance(tokenList); // consume WHILE
+        // Condition
+        ParseResult cond = parseLowestPrecedenceOperation(tokenList, error);
+        if (cond.hasError || !cond.node)
+            return makeError_keepErrInfo(error);
+
+        if (peek(tokenList)->type != TOKEN_DO)
+            return makeError(error, ERROR_MISC, "WHILE missing DO keyword, instead recived %s", peek(tokenList)->name);
+        advance(tokenList); // consume DO
+
+        // Body (block)
+        SyntaxNode* body = parseBlock(tokenList, error, TOKEN_DONE);
+        
+        if (error->hasError || !body)
+            makeError_keepErrInfo(error);
+
+        SyntaxNode* n = initNode();
+        n->type = NODE_WHILE;
+        n->left = cond.node;
+        n->right = body;
+        return makeResult(n);
     }
 
-    return makeError(error, "Unknown statement", ERROR_UNKNOWN_INSTRUCTION);
+    return makeError(error, ERROR_UNKNOWN_INSTRUCTION, "Unknown statement: %s", t->name);
 }
+
 
 ParseResult parseFactor(Token** tokenList, SimplicError* error) {
     Token* t = peek(tokenList);
@@ -249,7 +319,7 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         return makeResult(n);
     }
 
-    return makeError(error, "Expected number or variable", ERROR_UNEXPECTED_TOKEN);
+    return makeError(error, ERROR_UNEXPECTED_TOKEN, "Expected number or variable, instead received: %s", t->name);
 }
 
 ParseResult parseTerm(Token** tokenList, SimplicError* error) {
@@ -265,7 +335,7 @@ ParseResult parseTerm(Token** tokenList, SimplicError* error) {
         ParseResult right = parseFactor(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in binary term", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, ERROR_UNDEFINED_SECOND_OPERAND, "Invalid right operand in binary term");
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
@@ -306,7 +376,7 @@ ParseResult parseExpr(Token** tokenList, SimplicError* error) {
         ParseResult right = parseTerm(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in expression", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, ERROR_UNDEFINED_SECOND_OPERAND, "Invalid right operand in expression");
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
@@ -342,7 +412,7 @@ ParseResult parseRelational(Token** tokenList, SimplicError* error) {
         ParseResult right = parseTerm(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in relational comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, ERROR_UNDEFINED_SECOND_OPERAND, "Invalid right operand in relational comparison");
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
@@ -384,7 +454,7 @@ ParseResult parseEquality(Token** tokenList, SimplicError* error) {
         ParseResult right = parseRelational(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in equality comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, ERROR_UNDEFINED_SECOND_OPERAND, "Invalid right operand in equality comparison");
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
@@ -420,7 +490,7 @@ ParseResult parseLogical(Token** tokenList, SimplicError* error) {
         ParseResult right = parseEquality(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in logical comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, ERROR_UNDEFINED_SECOND_OPERAND, "Invalid right operand in logical comparison");
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
@@ -451,4 +521,36 @@ ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* erro
 SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {
     ParseResult res = parseStatement(tokenList, error);
     return  res.node;
+}
+
+SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken) {
+    // A block node has a list of ASTs (blockStatements) that will be run in one sitting by the interpreter
+    SyntaxNode** blockStatements = NULL;
+    int statementCount = 0;
+
+    while (peek(tokenList)->type != endToken && !error->hasError && peek(tokenList)->type != TOKEN_EOF) {
+        ParseResult statement = parseStatement(tokenList, error);
+
+        // If null, we reached endToken
+        if (statement.node == NULL) break;
+
+        blockStatements = realloc(blockStatements, sizeof(SyntaxNode*) * (statementCount + 1));
+        blockStatements[statementCount++] = statement.node;
+    }
+
+    if (peek(tokenList)->type != endToken && peek(tokenList)->type != TOKEN_EOF)
+        makeError(error, ERROR_NON_TERMINATED_BLOCK, "Expected matching block terminator, instead received: %s", peek(tokenList)->name);
+
+    if (peek(tokenList)->type == endToken)
+        advance(tokenList); // consume endToken
+
+    SyntaxNode* block = initNode();
+    block->type = NODE_BLOCK;
+    block->blockStatements = blockStatements;
+
+    // One more space for the NULL delimiter
+    block->blockStatements = realloc(blockStatements, sizeof(SyntaxNode*) * (statementCount + 1));
+    block->blockStatements[statementCount] = NULL; // Null terminated statement list
+
+    return block;
 }

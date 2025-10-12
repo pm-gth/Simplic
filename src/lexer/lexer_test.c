@@ -106,7 +106,6 @@ void tokenizeWorks(){
     addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
     addTokenToTail(&testList, TOKEN_EQUALS, "=", NULL);
     addTokenToTail(&testList, TOKEN_NUMBER, "34", NULL);
-    addTokenToTail(&testList, TOKEN_NEWLINE, "\\n", NULL);
 
     addTokenToTail(&testList, TOKEN_PRINT, "PRINT", NULL);
     addTokenToTail(&testList, TOKEN_VAR, "X", NULL);

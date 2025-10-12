@@ -24,7 +24,7 @@ struct BankResult {
 // Wrapper functions for the bank, return values or errors
 static BankResult makeResultInt(int n);
 static BankResult makeResultStr(char* s);
-static BankResult makeError(SimplicError* err, const char* msg, int code);
+static BankResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
 
 static unsigned long stringHash(const char *str); // Hash function for strings
 
@@ -43,7 +43,7 @@ BankResult deleteVariable(const char* key, SimplicError* error); // Return 0 if 
 static SimplicValue eval_makeResultInt(int n);
 static SimplicValue eval_makeResultStr(char* s);
 static SimplicValue eval_makeResultVoid(); // For empty results such as the one from PRINT
-static SimplicValue eval_makeError(SimplicError* err, const char* msg, int code);
+static SimplicValue eval_makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
 static SimplicValue eval_makeError_keepErrInfo(SimplicError* err);
 static SimplicValue eval_returnInt(int n); // Exits from the interpreter
 static SimplicValue eval_returnStr(char* s);

@@ -12,7 +12,7 @@ struct ParseResult{
 
 // Wrapper functions, used to return nodes or errors
 static ParseResult makeResult(SyntaxNode* n);
-static ParseResult makeError(SimplicError* err, const char* msg, int code);
+ParseResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
 
 static Token* peek(Token** tokenList); // Returns current token
 static Token advance(Token** tokenList); // Pops out a token and returns a copy of it
@@ -28,6 +28,7 @@ static ParseResult parseRelational(Token** tokenList, SimplicError* error); // T
 static ParseResult parseEquality(Token** tokenList, SimplicError* error); // Takes care of equality ops == and !=
 static ParseResult parseLogical(Token** tokenList, SimplicError* error); // Takes care of logical ops && and ||
 static ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* error); // Wrapper to call lowest priority parsing
+SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken); // takes care of code blocks
 
 static SyntaxNode* initNode(void); // Used to create a node, sets to NULL its fields
 

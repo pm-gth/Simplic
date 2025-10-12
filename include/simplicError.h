@@ -22,6 +22,8 @@ typedef enum {
     ERROR_UNEXPECTED_TOKEN,
     ERROR_ACCESS_TO_UNDECLARED_VAR,
     ERROR_NON_TERMINATED_STRING_LITERAL,
+    ERROR_NON_TERMINATED_BLOCK,
+    ERROR_TYPE_MISMATCH,
     ERROR_MISC // Do not bother with these
 } SimplicErrorType;
 
@@ -33,7 +35,7 @@ struct SimplicError {
 };
 
 SimplicError* initError(void); // Allocates error in memory
-void setError(SimplicError* error, const char* msg, SimplicErrorType errCode); // Throws error with message
+void setError(SimplicError* error, SimplicErrorType errCode, const char* format, ...); // Throws error with message
 void unsetError(SimplicError* error); // Unsets error
 void printError(SimplicError* error);
 void deleteError(SimplicError** error); // Deletes and deallocates error

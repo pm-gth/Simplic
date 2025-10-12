@@ -96,11 +96,7 @@ void printTokens(Token* tokenList){
 	Token* curr = tokenList;
 	
 	while(curr->next != NULL){
-		if(curr->type == TOKEN_NEWLINE){
-			putchar('\n');
-		} else {
-			printf("%s ", curr->name);
-		}
+		printf("%s ", curr->name);
 		curr = curr->next;
 	}
 	printf("%s\n", curr->name); // Last token
@@ -133,9 +129,8 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 
 	while(i < len){
 		// Symbol or escape seq
-		while (src[i] == ' ' || src[i] == '\t') i++;
+		while (src[i] == ' ' || src[i] == '\t' || src[i] == '\n') i++;
 
-		if (src[i] == '\n') { i++; addTokenToTail(tokenList, TOKEN_NEWLINE, "\\n", NULL); continue; }
 		if (src[i] == '=')  { i++; addTokenToTail(tokenList, TOKEN_EQUALS, "=", NULL); continue; }
 		if (src[i] == '+')  { i++; addTokenToTail(tokenList, TOKEN_PLUS, "+", NULL); continue; }
 		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-", NULL); continue; }
@@ -152,7 +147,7 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			}
 
 			if(j >= len){
-				setError(error, "Could not find end of string literal", ERROR_NON_TERMINATED_STRING_LITERAL);
+				setError(error, ERROR_NON_TERMINATED_STRING_LITERAL, "Could not find end of string literal");
 				return;
 			}
 
@@ -191,6 +186,9 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			if (strcmp(buffer, "NEQ") == 0) { addTokenToTail(tokenList, TOKEN_NEQ, "NEQ", NULL); continue; }
 			if (strcmp(buffer, "AND") == 0) { addTokenToTail(tokenList, TOKEN_AND, "AND", NULL); continue; }
 			if (strcmp(buffer, "OR") == 0) { addTokenToTail(tokenList, TOKEN_OR, "OR", NULL); continue; }
+			if (strcmp(buffer, "WHILE") == 0) { addTokenToTail(tokenList, TOKEN_WHILE, "WHILE", NULL); continue; }
+			if (strcmp(buffer, "DO") == 0) { addTokenToTail(tokenList, TOKEN_DO, "DO", NULL); continue; }
+			if (strcmp(buffer, "DONE") == 0) { addTokenToTail(tokenList, TOKEN_DONE, "DONE", NULL); continue; }
 			addTokenToTail(tokenList, TOKEN_VAR, buffer, NULL); continue;
 		}
 
