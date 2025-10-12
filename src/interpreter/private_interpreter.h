@@ -37,7 +37,7 @@ static MemoryCell* initMemCell(void); // Creates a memory cell with its default 
 static BankResult getInt(const char* key, SimplicError* error);
 static BankResult getStr(const char* key, SimplicError* error);
 static bool varIsInt(const char* key, SimplicError* error); // Checks if certain stored variable is an integer
-static int delete(const char* key); // Return 0 if variable was unset successfuly, else -1
+BankResult deleteVariable(const char* key, SimplicError* error); // Return 0 if variable was unset successfuly, else -1
 
 // Wrapper functions for eval()
 static SimplicValue eval_makeResultInt(int n);

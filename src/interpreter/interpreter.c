@@ -143,7 +143,7 @@ BankResult getStr(const char* key, SimplicError* error) {
     return makeError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
 }
 
-int delete(const char* key) {
+BankResult deleteVariable(const char* key, SimplicError* error) {
     unsigned int index = stringHash(key);
     MemoryCell* current = MemoryBank[index];
     MemoryCell* prev = NULL;
@@ -160,12 +160,12 @@ int delete(const char* key) {
             }
                 
             free(current);
-            return 0;
+            return makeResultInt(0);
         }
         prev = current;
         current = current->next;
     }
-    return -1;
+    return makeError(error, "Tried to unset undeclared variable", ERROR_ACCESS_TO_UNDECLARED_VAR);
 }
 
 void emptyMemoryBank() {
@@ -326,6 +326,11 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
             insertStr(node->varName, val.string);
             free(val.string);
         }
+        return eval_makeResultVoid();
+    }
+    if(node->type == NODE_UNASSIGN){
+        deleteVariable(node->varName, error);
+        if (error->hasError) return eval_makeError_keepErrInfo(error);
         return eval_makeResultVoid();
     }
     if(node->type == NODE_PRINT){

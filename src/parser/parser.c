@@ -37,6 +37,7 @@ void freeSyntaxTree(SyntaxNode* tree) {
     switch (tree->type) {
         case NODE_NUMBER:
         case NODE_VAR:
+        case NODE_UNASSIGN:
             // No child nodes to free
             break;
         case NODE_STRING:
@@ -79,6 +80,7 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
             return a->numberValue == b->numberValue;
 
         case NODE_VAR:
+        case NODE_UNASSIGN:
             // Vars are only compared by name, their value is in the bank
             return strcmp(a->varName, b->varName) == 0;
 
@@ -148,6 +150,17 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         n->type = NODE_ASSIGN;
         strcpy(n->varName, var.name);
         n->right = valueNode; // Var's value
+        return makeResult(n);
+    }
+
+    // Unset node contain the target's var name to be unset
+    if (t->type == TOKEN_UNSET) {
+        advance(tokenList); // consume UNSET
+        Token var = advance(tokenList); // variable name
+        
+        SyntaxNode* n = initNode();
+        n->type = NODE_UNASSIGN;
+        strcpy(n->varName, var.name);
         return makeResult(n);
     }
 

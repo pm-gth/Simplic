@@ -14,6 +14,7 @@
 
 typedef enum {
     TOKEN_SET,
+    TOKEN_UNSET,
     TOKEN_PRINT,
     TOKEN_RETURN,
     TOKEN_VAR,

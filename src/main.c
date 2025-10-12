@@ -12,11 +12,10 @@ int main(void) {
         ;
 
     const char* program =
-        "SET X = 5 EQ 5 AND 7 LT 3\n"
-        "SET Y = 77 LEQ 77 OR 6 GT 99\n"
-        "SET RES = X OR Y\n"
-        "PRINT \"El resultado de la eval logica es: \" + RES\n"
-        "RETURN 0\n";
+        "SET X = 7\n"
+        "SET X = X + 1\n"
+        "PRINT X\n"
+        ;
 
     Token* tokenList = initTokenList();
     initMemoryBank();
