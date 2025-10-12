@@ -13,20 +13,18 @@ int main(void) {
 
     const char* program =
         "SET X = 0\n"
-        "SET Y = 0"
-        "WHILE X LT 5\n"
-        "DO\n"
-            "INCR X\n"
-            "WHILE Y LT 3\n"
-            "DO\n"
+        "SET Y = 0\n"
+        "SET ITERS = 0\n"
+        "WHILE X LT 5 DO\n"
+            "WHILE Y LT 5 DO\n"
                 "INCR Y\n"
-                "PRINTLN \"Y: \" + Y\n"
+                "INCR ITERS\n"
             "DONE\n"
-            "PRINTLN X\n"
             "SET Y = 0\n"
+            "INCR X\n"
+            "INCR ITERS\n"
         "DONE\n"
-        "RETURN RES\n"
-        ;
+        "RETURN ITERS\n";
 
     Token* tokenList = initTokenList();
     initMemoryBank();

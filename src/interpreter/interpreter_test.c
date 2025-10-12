@@ -1,3 +1,4 @@
+#include "simplicError.h"
 #include "unity.h"
 #include "unity_internals.h"
 
@@ -179,7 +180,6 @@ void relationalOperationsGreater(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_INT(1, val.integer);
-    free(val.string);
 }
 
 void relationalOperationsLower(void) {
@@ -202,7 +202,6 @@ void relationalOperationsLower(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_INT(1, val.integer);
-    free(val.string);
 }
 
 void equalityOperationsEqual(void) {
@@ -225,7 +224,6 @@ void equalityOperationsEqual(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_INT(1, val.integer);
-    free(val.string);
 }
 
 void equalityOperationsNotEqual(void) {
@@ -248,7 +246,6 @@ void equalityOperationsNotEqual(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_INT(1, val.integer);
-    free(val.string);
 }
 
 void logicalOperatorsAndOr(void) {
@@ -273,7 +270,6 @@ void logicalOperatorsAndOr(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_INT(1, val.integer);
-    free(val.string);
 }
 
 void unsetVariable(void) {
@@ -296,7 +292,64 @@ void unsetVariable(void) {
     }
 
     TEST_ASSERT_TRUE(error->hasError);
-    free(val.string);
+}
+
+void whileLoop(void) {
+     const char* program =
+        "SET X = 0\n"
+        "WHILE X LT 5 DO\n"
+            "INCR X\n"
+        "DONE\n"
+        "RETURN X\n";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(5, val.integer);
+}
+
+void nestedWhileLoop(void) {
+     const char* program =
+        "SET X = 0\n"
+        "SET Y = 0\n"
+        "SET ITERS = 0\n"
+        "WHILE X LT 5 DO\n"
+            "WHILE Y LT 5 DO\n"
+                "INCR Y\n"
+                "INCR ITERS\n"
+            "DONE\n"
+            "SET Y = 0\n"
+            "INCR X\n"
+            "INCR ITERS\n"
+        "DONE\n"
+        "RETURN ITERS\n";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(30, val.integer);
 }
 
 int main(void) {
@@ -313,5 +366,7 @@ int main(void) {
     RUN_TEST(equalityOperationsNotEqual);
     RUN_TEST(logicalOperatorsAndOr);
     RUN_TEST(unsetVariable);
+    RUN_TEST(whileLoop);
+    RUN_TEST(nestedWhileLoop);
     return UNITY_END();
 }
