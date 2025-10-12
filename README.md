@@ -16,7 +16,7 @@ here are some examples of Simplic statements:
 	PRINTLN "My favourite number is: " + X
 	UNSET X # X is removed from the variable bank
 	WHILE X GT 0 DO # While X is greater than zero
-	DECR X 
+		DECR X 
 	DONE
 
 More examples can be found in the "simplic_programs/" folder.
