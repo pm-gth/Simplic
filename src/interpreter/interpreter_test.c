@@ -159,6 +159,52 @@ void stringAndNumberConcatenation(void) {
     free(val.string);
 }
 
+void relationalOperationsGreater(void) {
+     const char* program =
+        "SET X = 1 GT 0"
+        "RETURN 54 + X GEQ 55";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(1, val.integer);
+    free(val.string);
+}
+
+void relationalOperationsLower(void) {
+     const char* program =
+        "SET X\n"
+        "RETURN X LEQ 54 LT 3";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(1, val.integer);
+    free(val.string);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(testReturnCorrectInt);
@@ -167,5 +213,7 @@ int main(void) {
     RUN_TEST(divisionByZero);
     RUN_TEST(stringConcatenation);
     RUN_TEST(stringAndNumberConcatenation);
+    RUN_TEST(relationalOperationsGreater);
+    RUN_TEST(relationalOperationsLower);
     return UNITY_END();
 }

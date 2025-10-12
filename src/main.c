@@ -12,9 +12,8 @@ int main(void) {
         ;
 
     const char* program =
-        "SET X = 2 * 76 % 3\n"
-        "SET Y = \"YOUR LUCKY NUMBER IS: \"\n"
-        "RETURN Y + X\n";
+        "PRINT 53 + 1 GEQ 54\n"
+        "RETURN 0\n";
 
     Token* tokenList = initTokenList();
     initMemoryBank();

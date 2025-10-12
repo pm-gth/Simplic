@@ -24,7 +24,15 @@ typedef enum {
     TOKEN_MULT,
     TOKEN_DIV,
     TOKEN_MOD,
-    TOKEN_EQUALS,
+    TOKEN_EQUALS, // Symbol '='
+    TOKEN_EQ, // EQ comparation
+    TOKEN_NEQ,
+    TOKEN_GT,
+    TOKEN_LT,
+    TOKEN_GEQ,
+    TOKEN_LEQ,
+    TOKEN_AND,
+    TOKEN_OR,
     TOKEN_INCREMENT,
     TOKEN_DECREMENT,
     TOKEN_NEWLINE,

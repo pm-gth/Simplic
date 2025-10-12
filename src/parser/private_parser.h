@@ -24,6 +24,7 @@ static ParseResult parseStatement(Token** tokenList, SimplicError* error); // ge
 static ParseResult parseFactor(Token** tokenList, SimplicError* error); // generates variable, number or string nodes
 static ParseResult parseTerm(Token** tokenList, SimplicError* error); // takes care of * and / nodes
 static ParseResult parseExpr(Token** tokenList, SimplicError* error); // takes care of + and - nodes
+static ParseResult parseRelational(Token** tokenList, SimplicError* error); // Takes care of relational comparisons (<, >, <=, >=)
 
 static SyntaxNode* initNode(void); // Used to create a node, sets to NULL its fields
 

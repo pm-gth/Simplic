@@ -4,6 +4,7 @@
 #include "unity_internals.h"
 
 #include "parser.c"
+#include <string.h>
 
 Token*tokenList;
 
@@ -30,7 +31,7 @@ void testParseSet(void){
 
         root->right = initNode();
         root->right->type = NODE_BIN_OP;
-        root->right->operator = '+';
+        strcpy(root->right->operator, "+");
 
         root->right->right = initNode();
         root->right->right->type = NODE_NUMBER;

@@ -36,7 +36,7 @@ typedef struct SyntaxNode SyntaxNode;
 struct SyntaxNode {
     NodeType type;
     char varName[IDENTIFIER_SIZE]; // For variables
-    char operator;  // For bin_ops
+    char operator[BIN_OP_OPERATOR_SIZE];  // For bin_ops
     int numberValue;    // For numbers
     char* string; // For strings
     SyntaxNode* left;

@@ -21,7 +21,7 @@ Token advance(Token** tokenList){
 static SyntaxNode* initNode() {
     SyntaxNode* res = malloc(sizeof(SyntaxNode));
     res->numberValue = 0;
-    res->operator = '&';
+    strcpy(res->operator, "&");
     res->string = NULL;
     res->left = NULL;
     res->right = NULL;
@@ -136,7 +136,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         } else{
             advance(tokenList); // consume '='
 
-            ParseResult expr = parseExpr(tokenList, error);
+            ParseResult expr = parseRelational(tokenList, error);
             if (expr.hasError || !expr.node)
                 return makeError(error, "Invalid expression in SET statement", ERROR_INVALID_EXPR);
 
@@ -154,7 +154,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Print node contains a right branch with the value to be printed
     if (t->type == TOKEN_PRINT) {
         advance(tokenList); // consume PRINT
-        ParseResult expr = parseExpr(tokenList, error);
+        ParseResult expr = parseRelational(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid PRINT expression", ERROR_INVALID_EXPR);
 
@@ -168,7 +168,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Print node contains a right branch with the value to be returned
     if (t->type == TOKEN_RETURN) {
         advance(tokenList); // consume RETURN
-        ParseResult expr = parseExpr(tokenList, error);
+        ParseResult expr = parseRelational(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid RETURN expression", ERROR_INVALID_EXPR);
 
@@ -183,7 +183,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         TokenType oldType = t->type;
         advance(tokenList);
 
-        ParseResult expr = parseExpr(tokenList, error);
+        ParseResult expr = parseRelational(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, "Invalid expression in INCR/DECR statement", ERROR_INVALID_EXPR);
 
@@ -249,20 +249,20 @@ ParseResult parseTerm(Token** tokenList, SimplicError* error) {
         ParseResult right = parseFactor(tokenList, error);
 
         if (right.hasError || !right.node)
-            return makeError(error, "Invalid right operand in binary expression", ERROR_UNDEFINED_SECOND_OPERAND);
+            return makeError(error, "Invalid right operand in binary term", ERROR_UNDEFINED_SECOND_OPERAND);
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
         
         switch (oldType) {
             case TOKEN_MULT:
-                n->operator = '*';
+                strcpy( n->operator, "*");
                 break;
             case TOKEN_DIV:
-                n->operator = '/';
+                strcpy( n->operator, "/");
                 break;
             case TOKEN_MOD:
-                n->operator = '%';
+                strcpy( n->operator, "%");
                 break;
             default:
             ; // shut up the compiler
@@ -294,7 +294,58 @@ ParseResult parseExpr(Token** tokenList, SimplicError* error) {
 
         SyntaxNode* n = initNode();
         n->type = NODE_BIN_OP;
-        n->operator = (oldType == TOKEN_PLUS ? '+' : '-');
+        switch(oldType){
+            case TOKEN_PLUS:
+                strcpy( n->operator, "+");
+                break;
+            case TOKEN_MINUS:
+                strcpy( n->operator, "-");
+                break;
+            default:
+            ;
+        }
+        n->left = left.node;
+        n->right = right.node;
+
+        left.node = n;
+    }
+
+    return left;
+}
+
+ParseResult parseRelational(Token** tokenList, SimplicError* error) {
+    ParseResult left = parseExpr(tokenList, error);
+    if (left.hasError) return left;
+
+    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
+    // first one is in the left child, second's in the right one
+    while (peek(tokenList)->type == TOKEN_GT || peek(tokenList)->type == TOKEN_GEQ || peek(tokenList)->type == TOKEN_LT || peek(tokenList)->type == TOKEN_LEQ) {
+        TokenType oldType = peek(tokenList)->type;
+
+        advance(tokenList);
+        ParseResult right = parseTerm(tokenList, error);
+
+        if (right.hasError || !right.node)
+            return makeError(error, "Invalid right operand in relational comparison", ERROR_UNDEFINED_SECOND_OPERAND);
+
+        SyntaxNode* n = initNode();
+        n->type = NODE_BIN_OP;
+        switch(oldType){
+            case TOKEN_GT:
+                strcpy( n->operator, ">");
+                break;
+            case TOKEN_GEQ:
+                strcpy( n->operator, ">=");
+                break;
+            case TOKEN_LT:
+                strcpy( n->operator, "<");
+                break;
+            case TOKEN_LEQ:
+                strcpy( n->operator, "<=");
+                break;
+            default:
+            ;
+        }
         n->left = left.node;
         n->right = right.node;
 

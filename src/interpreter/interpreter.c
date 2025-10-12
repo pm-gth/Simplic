@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "simplic.h"
 #include "simplicError.h"
+#include <string.h>
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 
@@ -253,7 +254,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if(error->hasError) return eval_makeError_keepErrInfo(error);
 
         // String concat
-        if (l.type == VALUE_STR && r.type == VALUE_STR && node->operator == '+') {
+        if (l.type == VALUE_STR && r.type == VALUE_STR &&  (strcmp(node->operator, "+") == 0)) {
             int len = strlen(l.string) + strlen(r.string);
             char* buffer = malloc(sizeof(char)*(len+1));
             snprintf(buffer, len+1, "%s%s", l.string, r.string);
@@ -266,7 +267,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         }
 
         // String and number concat
-        if (l.type == VALUE_STR && r.type == VALUE_INT && node->operator == '+') {
+        if (l.type == VALUE_STR && r.type == VALUE_INT && (strcmp(node->operator, "+") == 0)) {
             int len = strlen(l.string) + CHARS_FOR_INT_TO_STRING;
             char* buffer = malloc(sizeof(char)*(len+1));
             snprintf(buffer, len+1, "%s%d", l.string, r.integer);
@@ -277,7 +278,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
             return res;
         }
 
-        if(l.type == VALUE_INT && r.type == VALUE_STR && node->operator == '+') {
+        if(l.type == VALUE_INT && r.type == VALUE_STR && (strcmp(node->operator, "+") == 0)) {
             int len = strlen(r.string) + CHARS_FOR_INT_TO_STRING;
             char* buffer = malloc(sizeof(char)*(len+1));
             snprintf(buffer, len+1, "%d%s", l.integer, r.string);
@@ -288,18 +289,24 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
             return res;
         }
 
-        switch(node->operator){
-            case '+': return eval_makeResultInt(l.integer + r.integer);
-            case '-': return eval_makeResultInt(l.integer - r.integer);
-            case '*': return eval_makeResultInt(l.integer * r.integer);
-            case '/':
+        // Arithmetic operations
+        if ((strcmp(node->operator, "+") == 0)) return eval_makeResultInt(l.integer + r.integer);
+        if ((strcmp(node->operator, "-") == 0)) return eval_makeResultInt(l.integer - r.integer);
+        if ((strcmp(node->operator, "*") == 0)) return eval_makeResultInt(l.integer * r.integer);
+        if ((strcmp(node->operator, "/") == 0)) {
             if(r.integer == 0){
                 return eval_makeError(error, "Division by 0, execution halted", ERROR_DIVISION_BY_ZERO);
             } else {
                 return eval_makeResultInt(l.integer / r.integer);
             }
-            case '%': return eval_makeResultInt(l.integer % r.integer);
         }
+        if ((strcmp(node->operator, "%") == 0)) return eval_makeResultInt(l.integer % r.integer);
+
+        // Relational operations
+        if ((strcmp(node->operator, "<") == 0)){ return eval_makeResultInt((l.integer < r.integer)? 1 : 0); }
+        if ((strcmp(node->operator, "<=") == 0)){ return eval_makeResultInt((l.integer <= r.integer)? 1 : 0); }
+        if ((strcmp(node->operator, ">") == 0)){ return eval_makeResultInt((l.integer > r.integer)? 1 : 0); }
+        if ((strcmp(node->operator, ">=") == 0)){ return eval_makeResultInt((l.integer >= r.integer)? 1 : 0); }
     }
     if(node->type == NODE_ASSIGN){
         SimplicValue val = eval(node->right, error);
