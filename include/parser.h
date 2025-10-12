@@ -45,9 +45,9 @@ struct SyntaxNode {
     int numberValue;    // For numbers
     char* string; // For strings
     SyntaxNode** blockStatements; // For blocks of code
-    SyntaxNode* left;
-    SyntaxNode* right;
-    SyntaxNode* middle;
+    SyntaxNode* subnodeA;
+    SyntaxNode* subnodeB;
+    SyntaxNode* subnodeC;
 };
 
 void freeSyntaxTree(SyntaxNode* tree);

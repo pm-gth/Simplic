@@ -45,9 +45,9 @@ static SyntaxNode* initNode() {
     res->numberValue = 0;
     strcpy(res->operator, "&");
     res->string = NULL;
-    res->left = NULL;
-    res->right = NULL;
-    res->middle = NULL;
+    res->subnodeA = NULL;
+    res->subnodeB = NULL;
+    res->subnodeC = NULL;
     res->blockStatements = NULL;
     res->type = 0;
 
@@ -72,8 +72,8 @@ void freeSyntaxTree(SyntaxNode* tree) {
 
         case NODE_BIN_OP:
         case NODE_WHILE:
-            freeSyntaxTree(tree->left);
-            freeSyntaxTree(tree->right);
+            freeSyntaxTree(tree->subnodeA);
+            freeSyntaxTree(tree->subnodeB);
             break;
 
         case NODE_BLOCK: // Array of ASTs
@@ -85,9 +85,9 @@ void freeSyntaxTree(SyntaxNode* tree) {
             break;
 
         case NODE_IF:
-            freeSyntaxTree(tree->left);
-            freeSyntaxTree(tree->right);
-            freeSyntaxTree(tree->middle);
+            freeSyntaxTree(tree->subnodeA);
+            freeSyntaxTree(tree->subnodeB);
+            freeSyntaxTree(tree->subnodeC);
             break;
 
         case NODE_ASSIGN:
@@ -97,13 +97,13 @@ void freeSyntaxTree(SyntaxNode* tree) {
         case NODE_INCREMENT:
         case NODE_DECREMENT:
             // These have only one child on the right
-            freeSyntaxTree(tree->right);
+            freeSyntaxTree(tree->subnodeB);
             break;
 
         default:
             // Undefined, try to free both branches
-            freeSyntaxTree(tree->left);
-            freeSyntaxTree(tree->right);
+            freeSyntaxTree(tree->subnodeA);
+            freeSyntaxTree(tree->subnodeB);
             break;
     }
 
@@ -133,7 +133,7 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
 
         case NODE_BIN_OP:
         case NODE_WHILE:
-            return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right);
+            return compareSyntaxTree(a->subnodeA, b->subnodeA) && compareSyntaxTree(a->subnodeB, b->subnodeB);
 
         case NODE_BLOCK:
             i = 0;
@@ -149,7 +149,7 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
             return true;
 
         case NODE_IF:
-            return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right) && compareSyntaxTree(a->middle, b->middle);
+            return compareSyntaxTree(a->subnodeA, b->subnodeA) && compareSyntaxTree(a->subnodeB, b->subnodeB) && compareSyntaxTree(a->subnodeC, b->subnodeC);
 
         case NODE_ASSIGN:
         case NODE_PRINT:
@@ -157,11 +157,11 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
         case NODE_RETURN:
         case NODE_INCREMENT:
         case NODE_DECREMENT:
-            return compareSyntaxTree(a->right, b->right);
+            return compareSyntaxTree(a->subnodeB, b->subnodeB);
 
         default:
             // Undefined, try to compare both branches
-            return compareSyntaxTree(a->left, b->left) && compareSyntaxTree(a->right, b->right);
+            return compareSyntaxTree(a->subnodeA, b->subnodeA) && compareSyntaxTree(a->subnodeB, b->subnodeB);
     }
 
     return false;
@@ -222,7 +222,10 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         return (ParseResult){ .node = NULL, .hasError = false };
     }
 
-    // Set node contain the target's var name and a right branch with its new value (in form of factor or expression)
+    // ------------------------------------------
+    // SET Node -> Variable name
+    // Subnode B: new value for the variable 
+    // ------------------------------------------
     if (t->type == TOKEN_SET) {
         advance(tokenList); // consume SET
         Token var = advance(tokenList); // variable name
@@ -245,11 +248,13 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         SyntaxNode* n = initNode();
         n->type = NODE_ASSIGN;
         strcpy(n->varName, var.name);
-        n->right = valueNode; // Var's value
+        n->subnodeB = valueNode; // Var's value
         return makeResult(n);
     }
 
-    // Unset node contain the target's var name to be unset
+    // ------------------------------------------
+    // UNSET Node -> Variable name
+    // ------------------------------------------
     if (t->type == TOKEN_UNSET) {
         advance(tokenList); // consume UNSET
         Token var = advance(tokenList); // variable name
@@ -259,7 +264,10 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         return makeResult(n);
     }
 
-    // Print node contains a right branch with the value to be printed
+    // ------------------------------------------
+    // PRINT Node
+    // Subnode B: value to be printed
+    // ------------------------------------------
     if (t->type == TOKEN_PRINT || t->type == TOKEN_PRINTLN) {
         TokenType oldType = t->type;
         advance(tokenList); // consume PRINT
@@ -268,11 +276,14 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
             return makeError(error, ERROR_INVALID_EXPR, "Invalid PRINT expression");
         SyntaxNode* n = initNode();
         n->type = (oldType == TOKEN_PRINT) ? NODE_PRINT : NODE_PRINTLN;
-        n->right = expr.node;
+        n->subnodeB = expr.node;
         return makeResult(n);
     }
 
-    // Print node contains a right branch with the value to be returned
+    // ------------------------------------------
+    // RETURN Node
+    // Subnode B: value to be returned
+    // ------------------------------------------
     if (t->type == TOKEN_RETURN) {
         advance(tokenList); // consume RETURN
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
@@ -280,11 +291,14 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
             return makeError(error, ERROR_INVALID_EXPR, "Invalid RETURN expression");
         SyntaxNode* n = initNode();
         n->type = NODE_RETURN;
-        n->right = expr.node;
+        n->subnodeB = expr.node;
         return makeResult(n);
     }
 
-    // Incr/Decr node contains a right branch with the name of the variable to be increased/decreased
+    // ------------------------------------------
+    // INCR/DECR Node
+    // Subnode B: name of variable to be modified
+    // ------------------------------------------
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
         advance(tokenList);
@@ -293,11 +307,15 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
             return makeError(error, ERROR_INVALID_EXPR, "Invalid expression in INCR/DECR statement");
         SyntaxNode* n = initNode();
         n->type = (oldType == TOKEN_INCREMENT) ? NODE_INCREMENT : NODE_DECREMENT;
-        n->right = expr.node;
+        n->subnodeB = expr.node;
         return makeResult(n);
     }
 
-    // While code contains the exit condition as its left child and the block of code as its right child
+    // ------------------------------------------
+    // WHILE Node
+    // Subnode A: loop condition
+    // Subnode B: block of code
+    // ------------------------------------------
     if (t->type == TOKEN_WHILE) {
         advance(tokenList); // consume WHILE
         // Condition
@@ -317,12 +335,17 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 
         SyntaxNode* n = initNode();
         n->type = NODE_WHILE;
-        n->left = cond.node;
-        n->right = body;
+        n->subnodeA = cond.node;
+        n->subnodeB = body;
         return makeResult(n);
     }
 
-    // If code contains the exit condition as its left child, the if block code at the right, and a middle block of code if there is an else
+    // ------------------------------------------
+    // IF Node
+    // Subnode A: if condition
+    // Subnode B: if code block
+    // Subnode C: NULL or else code block
+    // ------------------------------------------
     if (t->type == TOKEN_IF) {
         advance(tokenList); // consume IF
         // Condition
@@ -355,9 +378,9 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 
         SyntaxNode* n = initNode();
         n->type = NODE_IF;
-        n->left = cond.node;
-        n->right = ifBody;
-        n->middle = elseBody;
+        n->subnodeA = cond.node;
+        n->subnodeB = ifBody;
+        n->subnodeC = elseBody;
         return makeResult(n);
     }
 
@@ -368,7 +391,9 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 ParseResult parseFactor(Token** tokenList, SimplicError* error) {
     Token* t = peek(tokenList);
 
-    // Number node contains its value
+    // ------------------------------------------
+    // NUMBER Node -> its value
+    // ------------------------------------------
     if (t->type == TOKEN_NUMBER) {
         SyntaxNode* n = initNode();
         n->type = NODE_NUMBER;
@@ -377,7 +402,9 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         return makeResult(n);
     } 
 
-    // Variable node contains its name, used for reference in the var bank
+    // ------------------------------------------
+    // VARIABLE Node -> its name
+    // ------------------------------------------
     else if (t->type == TOKEN_VAR) {
         SyntaxNode* n = initNode();
         n->type = NODE_VAR;
@@ -386,7 +413,9 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         return makeResult(n);
     }
 
-    // String node contains its text
+    // ------------------------------------------
+    // STRING Node -> its text
+    // ------------------------------------------
     else if (t->type == TOKEN_STRING) {
         SyntaxNode* n = initNode();
         n->type = NODE_STRING;
@@ -404,8 +433,11 @@ ParseResult parseTerm(Token** tokenList, SimplicError* error) {
     ParseResult left = parseFactor(tokenList, error);
     if (left.hasError) return left;
 
-    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
-    // first one is in the left child, second's in the right one
+    // ------------------------------------------
+    // BINARY_OP Node -> operator
+    // Subnode A: first operand
+    // Subnode B: second operand
+    // ------------------------------------------
     while (peek(tokenList)->type == TOKEN_MULT || peek(tokenList)->type == TOKEN_DIV || peek(tokenList)->type == TOKEN_MOD) {
         TokenType oldType = peek(tokenList)->type; // Save ops type, we need to advance in the list for the second operand
 
@@ -432,8 +464,8 @@ ParseResult parseTerm(Token** tokenList, SimplicError* error) {
             ; // shut up the compiler
         }
 
-        n->left = left.node;
-        n->right = right.node;
+        n->subnodeA = left.node;
+        n->subnodeB = right.node;
 
         left.node = n;
     }
@@ -445,8 +477,11 @@ ParseResult parseExpr(Token** tokenList, SimplicError* error) {
     ParseResult left = parseTerm(tokenList, error);
     if (left.hasError) return left;
 
-    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
-    // first one is in the left child, second's in the right one
+    // ------------------------------------------
+    // BINARY_OP Node -> operator
+    // Subnode A: first operand
+    // Subnode B: second operand
+    // ------------------------------------------
     while (peek(tokenList)->type == TOKEN_PLUS || peek(tokenList)->type == TOKEN_MINUS) {
         TokenType oldType = peek(tokenList)->type;
 
@@ -468,8 +503,8 @@ ParseResult parseExpr(Token** tokenList, SimplicError* error) {
             default:
             ;
         }
-        n->left = left.node;
-        n->right = right.node;
+        n->subnodeA = left.node;
+        n->subnodeB = right.node;
 
         left.node = n;
     }
@@ -481,8 +516,11 @@ ParseResult parseRelational(Token** tokenList, SimplicError* error) {
     ParseResult left = parseExpr(tokenList, error);
     if (left.hasError) return left;
 
-    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
-    // first one is in the left child, second's in the right one
+    // ------------------------------------------
+    // BINARY_OP Node -> operator
+    // Subnode A: first operand
+    // Subnode B: second operand
+    // ------------------------------------------
     while (peek(tokenList)->type == TOKEN_GT || peek(tokenList)->type == TOKEN_GEQ || peek(tokenList)->type == TOKEN_LT || peek(tokenList)->type == TOKEN_LEQ) {
         TokenType oldType = peek(tokenList)->type;
 
@@ -510,8 +548,8 @@ ParseResult parseRelational(Token** tokenList, SimplicError* error) {
             default:
             ;
         }
-        n->left = left.node;
-        n->right = right.node;
+        n->subnodeA = left.node;
+        n->subnodeB = right.node;
 
         left.node = n;
     }
@@ -523,8 +561,11 @@ ParseResult parseEquality(Token** tokenList, SimplicError* error) {
     ParseResult left = parseRelational(tokenList, error);
     if (left.hasError) return left;
 
-    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
-    // first one is in the left child, second's in the right one
+    // ------------------------------------------
+    // BINARY_OP Node -> operator
+    // Subnode A: first operand
+    // Subnode B: second operand
+    // ------------------------------------------
     while (peek(tokenList)->type == TOKEN_EQ || peek(tokenList)->type == TOKEN_NEQ) {
         TokenType oldType = peek(tokenList)->type;
 
@@ -546,8 +587,8 @@ ParseResult parseEquality(Token** tokenList, SimplicError* error) {
             default:
             ;
         }
-        n->left = left.node;
-        n->right = right.node;
+        n->subnodeA = left.node;
+        n->subnodeB = right.node;
 
         left.node = n;
     }
@@ -559,8 +600,11 @@ ParseResult parseLogical(Token** tokenList, SimplicError* error) {
     ParseResult left = parseEquality(tokenList, error);
     if (left.hasError) return left;
 
-    // Binary operation contains an operator (which indicates the operation) and two branches for its both operands
-    // first one is in the left child, second's in the right one
+    // ------------------------------------------
+    // BINARY_OP Node -> operator
+    // Subnode A: first operand
+    // Subnode B: second operand
+    // ------------------------------------------
     while (peek(tokenList)->type == TOKEN_AND || peek(tokenList)->type == TOKEN_OR) {
         TokenType oldType = peek(tokenList)->type;
 
@@ -582,8 +626,8 @@ ParseResult parseLogical(Token** tokenList, SimplicError* error) {
             default:
             ;
         }
-        n->left = left.node;
-        n->right = right.node;
+        n->subnodeA = left.node;
+        n->subnodeB = right.node;
 
         left.node = n;
     }
@@ -603,6 +647,10 @@ SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {
 
 SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken) {
     // A block node has a list of ASTs (blockStatements) that will be run in one sitting by the interpreter
+    // ------------------------------------------
+    // BLOCK Node -> node list
+    // ------------------------------------------
+    
     SyntaxNode** blockStatements = NULL;
     int statementCount = 0;
 

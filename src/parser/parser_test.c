@@ -29,17 +29,17 @@ void testParseSet(void){
         root->type = NODE_ASSIGN;
         strcpy(root->varName, "X");
 
-        root->right = initNode();
-        root->right->type = NODE_BIN_OP;
-        strcpy(root->right->operator, "+");
+        root->subnodeB = initNode();
+        root->subnodeB->type = NODE_BIN_OP;
+        strcpy(root->subnodeB->operator, "+");
 
-        root->right->right = initNode();
-        root->right->right->type = NODE_NUMBER;
-        root->right->right->numberValue = 1;
+        root->subnodeB->subnodeB = initNode();
+        root->subnodeB->subnodeB->type = NODE_NUMBER;
+        root->subnodeB->subnodeB->numberValue = 1;
 
-        root->right->left = initNode();
-        root->right->left->type = NODE_NUMBER;
-        root->right->left->numberValue = 7;
+        root->subnodeB->subnodeA = initNode();
+        root->subnodeB->subnodeA->type = NODE_NUMBER;
+        root->subnodeB->subnodeA->numberValue = 7;
 
     TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
     freeSyntaxTree(result.node);
@@ -61,9 +61,9 @@ void testParsePrint(void){
         SyntaxNode* root = initNode();
         root->type = NODE_PRINT;
 
-        root->right = initNode();
-        root->right->type = NODE_NUMBER;
-        root->right->numberValue = 4;
+        root->subnodeB = initNode();
+        root->subnodeB->type = NODE_NUMBER;
+        root->subnodeB->numberValue = 4;
 
     TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
     freeSyntaxTree(result.node);
@@ -99,9 +99,9 @@ void testParseSetDeclarationOnly(void){
         root->type = NODE_ASSIGN;
         strcpy(root->varName, "Y");
 
-        root->right = initNode();
-        root->right->type = NODE_NUMBER;
-        root->right->numberValue = 0;
+        root->subnodeB = initNode();
+        root->subnodeB->type = NODE_NUMBER;
+        root->subnodeB->numberValue = 0;
 
     TEST_ASSERT_TRUE(compareSyntaxTree(result.node, root));
     freeSyntaxTree(result.node);

@@ -289,8 +289,8 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         }
     }
     if(node->type == NODE_BIN_OP){
-        SimplicValue l = eval(node->left, error);
-        SimplicValue r = eval(node->right, error);
+        SimplicValue l = eval(node->subnodeA, error);
+        SimplicValue r = eval(node->subnodeB, error);
         if(error->hasError) return eval_makeError_keepErrInfo(error);
 
         // String concat
@@ -357,7 +357,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if ((strcmp(node->operator, "||") == 0)){ return eval_makeResultInt((l.integer || r.integer)? 1 : 0); }
     }
     if(node->type == NODE_ASSIGN){
-        SimplicValue val = eval(node->right, error);
+        SimplicValue val = eval(node->subnodeB, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
 
         if (val.type == VALUE_INT) {
@@ -374,7 +374,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         return eval_makeResultVoid();
     }
     if(node->type == NODE_PRINT || node->type == NODE_PRINTLN){
-        SimplicValue val = eval(node->right, error);
+        SimplicValue val = eval(node->subnodeB, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         const char* delimiter = (node->type == NODE_PRINTLN)? "\n" : ""; // Add \n if PRINTLN
 
@@ -387,7 +387,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         return eval_makeResultVoid();
     }
     if(node->type == NODE_RETURN){
-        SimplicValue val = eval(node->right, error);
+        SimplicValue val = eval(node->subnodeB, error);
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
@@ -398,25 +398,25 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
     }
 
     if(node->type == NODE_INCREMENT){
-        SimplicValue val = eval(node->right, error);
+        SimplicValue val = eval(node->subnodeB, error);
 
         if(val.type == VALUE_INT) {
             if (error->hasError) return eval_makeError_keepErrInfo(error);
 
             val.integer++;
-            insertInt(node->right->varName, val.integer);
+            insertInt(node->subnodeB->varName, val.integer);
         }
         return eval_makeResultVoid();
     }
 
     if(node->type == NODE_DECREMENT){
-        SimplicValue val = eval(node->right, error);
+        SimplicValue val = eval(node->subnodeB, error);
 
         if(val.type == VALUE_INT) {
             if (error->hasError) return eval_makeError_keepErrInfo(error);
 
             val.integer--;
-            insertInt(node->right->varName, val.integer);
+            insertInt(node->subnodeB->varName, val.integer);
         }
         return eval_makeResultVoid();
     }
@@ -435,13 +435,13 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
     // Executes a code block while condition evaluates true
     if (node->type == NODE_WHILE) {
         while (1) {
-            SimplicValue cond = eval(node->left, error); // Condition
+            SimplicValue cond = eval(node->subnodeA, error); // Condition
             if (error->hasError) return eval_makeError_keepErrInfo(error);
             if (cond.type != VALUE_INT)
                 return eval_makeError(error, ERROR_TYPE_MISMATCH, "WHILE condition must be integer");
             if (!cond.integer) break;
 
-            SimplicValue body = eval(node->right, error); // Body
+            SimplicValue body = eval(node->subnodeB, error); // Body
             if (error->hasError) return eval_makeError_keepErrInfo(error);
             if (body.receivedReturn) return body; // Propagate RETURN
         }
@@ -450,18 +450,18 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
 
     // Executes a code block if the condition is true; if it's false and there's another code block, execute that one
     if (node->type == NODE_IF) {
-        SimplicValue cond = eval(node->left, error); // Condition
+        SimplicValue cond = eval(node->subnodeA, error); // Condition
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         if (cond.type != VALUE_INT)
                 return eval_makeError(error, ERROR_TYPE_MISMATCH, "IF condition must be integer");
 
         if (cond.integer) {
-            SimplicValue body = eval(node->right, error);
+            SimplicValue body = eval(node->subnodeB, error);
             if (error->hasError) return eval_makeError_keepErrInfo(error);
             if (body.receivedReturn) return body; // Propagate RETURN
-        } else if(node->middle != NULL) {
+        } else if(node->subnodeC != NULL) {
             // There is an ELSE block
-            SimplicValue body = eval(node->middle, error);
+            SimplicValue body = eval(node->subnodeC, error);
             if (error->hasError) return eval_makeError_keepErrInfo(error);
             if (body.receivedReturn) return body; // Propagate RETURN
         }
