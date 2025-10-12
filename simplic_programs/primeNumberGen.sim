@@ -1,0 +1,21 @@
+# This program generates a list of prime numbers from X to UPPERBOUND
+
+SET X = 2
+SET Y
+SET ISPRIME
+SET UPPERBOUND = 1000
+
+WHILE X LT UPPERBOUND DO
+    SET Y = 2
+    SET ISPRIME = 1
+    WHILE Y * Y LEQ X DO
+        IF X % Y EQ 0 THEN
+            SET ISPRIME = 0
+		FI
+		INCR Y
+	DONE
+	IF ISPRIME THEN 
+		PRINTLN X + " is a prime number"
+	FI 
+	INCR X
+DONE

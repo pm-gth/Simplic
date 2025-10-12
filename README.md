@@ -37,7 +37,7 @@ Just run the program with a script file as argument
 
 
 # To do
-Simplic is still fairly limited, I want to add suppor for if statements, arrays
+Simplic is still fairly limited, I want to add suppor for goto statements, arrays
 and much more.
 
 # Special thanks

@@ -1,4 +1,5 @@
 # This program shows the result of X % MOD where X is any value between 0 an UPPERBOUND
+
 SET X = 0
 SET MOD = 3
 SET UPPERBOUND = 50

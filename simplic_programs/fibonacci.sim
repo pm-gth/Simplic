@@ -1,0 +1,15 @@
+# Computes UPPERBOUND terms of the Fibonacci sequence
+
+SET A = 0
+SET B = 1
+SET TEMP 
+SET I = 0
+SET UPPERBOUND = 10
+
+WHILE I LT UPPERBOUND DO
+        PRINTLN A
+        SET TEMP = A + B
+        SET A = B
+        SET B = TEMP
+        INCR I 
+DONE

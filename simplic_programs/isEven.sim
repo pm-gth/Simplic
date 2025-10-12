@@ -1,0 +1,11 @@
+# Program that prints all the even numbers between X and UPPEROUND
+
+SET X = 0
+SET UPPEROUND = 30
+
+WHILE X LT UPPEROUND DO
+        IF X % 2 EQ 0 AND X NEQ 0 THEN # Zero is not even
+                PRINTLN X + " is even"
+        FI
+        INCR X
+DONE
