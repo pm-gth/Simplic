@@ -383,5 +383,3 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
 
     return eval_makeError(error, "Tried to evaluate unknown type node", ERROR_MISC);
 }
-
-
