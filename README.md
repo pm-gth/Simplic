@@ -10,27 +10,31 @@ the variables inside a memory bank
 
 ## How's the syntax of a Simplic program?
 Simplic's keywords must be written in caps, however, variables are case-sensitive,
-here are some examples of Simplic statements:
+here is a sample Simplic program:
 	
-	SET X = 11
-	PRINTLN "My favourite number is: " + X
-	UNSET X # X is removed from the variable bank
-	WHILE X GT 0 DO # While X is greater than zero
-		DECR X 
+	SET BASE = 4
+	SET EXPO = 2
+	SET RESULT = 1 # This is a comment
+
+	WHILE EXPO GT 0 DO
+    	SET RESULT = RESULT * BASE
+    	DECR EXPO
 	DONE
+	PRINTLN "Result is: " + RESULT
+	RETURN 0
 
 More examples can be found in the "simplic_programs/" folder.
 
-## How to build Simplic
+## How to build Simplic:
 A Makefile is facilitated to build the program, some of its rules are:
 
 * make simplic (default rule): outputs the program to the build/ directory
 * make runTest : builds and runs all the unitary tests for each module
 
-Additionally each rule can be prefixed with MODE=debug to build with debug symbols
-and memory leak detection.
+Additionally each rule can be prefixed with MODE=debug to build with debug 
+symbols and memory leak detection.
 
-## Usage
+## Usage:
 Just run the program with a script file as argument
 	
 > ./simplic simplic_programs/power.sim
@@ -42,4 +46,6 @@ and much more.
 
 # Special thanks
 To the Unity unit-testing framework, used to make this program's tests, it can 
-be found here:  https://github.com/ThrowTheSwitch/Unity
+be found here:  
+
+https://github.com/ThrowTheSwitch/Unity
