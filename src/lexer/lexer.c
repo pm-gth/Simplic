@@ -4,6 +4,7 @@
 
 const char* src;
 
+// TODO: Support '_' for variable names
 bool isAlpha(char c){
 	return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
 }

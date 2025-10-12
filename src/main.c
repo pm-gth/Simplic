@@ -3,7 +3,7 @@
 #include "simplicError.h"
 
 int main(void) {
-    const char* program =
+    const char* programA =
         "SET X = 8 * 2 + 3\n"
         "INCR X\n"
         "SET Y = \"El resultado es: \"\n"
@@ -11,9 +11,15 @@ int main(void) {
         "RETURN 0\n"
         ;
 
+    const char* program =
+        "SET X = 2 * 76 % 3\n"
+        "SET Y = \"YOUR LUCKY NUMBER IS: \"\n"
+        "RETURN Y + X\n";
+
     Token* tokenList = initTokenList();
     initMemoryBank();
     SimplicError* error = initError();
+    SimplicValue val;
 
     tokenizeSource(&tokenList, program, error);
 
@@ -29,7 +35,7 @@ int main(void) {
             break;
         }
 
-        SimplicValue val = eval(result, error);
+        val = eval(result, error);
         freeSyntaxTree(result);
         
 
@@ -44,6 +50,10 @@ int main(void) {
         }
     }
 
+    if(val.type == VALUE_STR){
+        free(val.string);
+    }
+    
     emptyTokenList(&tokenList);
     emptyMemoryBank();
     deleteError(&error);

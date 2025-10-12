@@ -43,6 +43,7 @@ static SimplicValue eval_makeResultStr(char* s);
 static SimplicValue eval_makeResultVoid(); // For empty results such as the one from PRINT
 static SimplicValue eval_makeError(SimplicError* err, const char* msg, int code);
 static SimplicValue eval_makeError_keepErrInfo(SimplicError* err);
-static SimplicValue eval_return(int n); // Exits from the interpreter
+static SimplicValue eval_returnInt(int n); // Exits from the interpreter
+static SimplicValue eval_returnStr(char* s);
 
 #endif

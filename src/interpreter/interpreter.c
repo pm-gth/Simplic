@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include "private_interpreter.h"
 #include "parser.h"
+#include "simplic.h"
 #include "simplicError.h"
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
@@ -118,7 +119,7 @@ bool varIsInt(const char* key, SimplicError* error) {
         }
         current = current->next;
     }
-    setError(error, "VAriable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
+    setError(error, "Variable not initialized", ERROR_ACCESS_TO_UNDECLARED_VAR);
     return false;
 }
 
@@ -175,8 +176,12 @@ void emptyMemoryBank() {
     }
 }
 
-SimplicValue eval_return(int n) {
+SimplicValue eval_returnInt(int n) {
     return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true };
+}
+
+SimplicValue eval_returnStr(char* s) {
+    return (SimplicValue){ .type = VALUE_INT, .integer = 0, .string = s, .receivedReturn = true };
 }
 
 SimplicValue eval_makeResultInt(int n) {
@@ -255,19 +260,23 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
 
         // String and number concat
         if (l.type == VALUE_STR && r.type == VALUE_INT && node->operator == '+') {
-            char buffer[20]; // suficiente para un int normal
-            snprintf(buffer, sizeof(buffer), "%s%d", l.string, r.integer);
+            int len = strlen(l.string) + CHARS_FOR_INT_TO_STRING;
+            char* buffer = malloc(sizeof(char)*(len+1));
+            snprintf(buffer, len+1, "%s%d", l.string, r.integer);
 
             SimplicValue res = eval_makeResultStr(buffer);
+            free(buffer);
             free(l.string);
             return res;
         }
 
         if(l.type == VALUE_INT && r.type == VALUE_STR && node->operator == '+') {
-            char buffer[20]; // suficiente para un int normal
-            snprintf(buffer, sizeof(buffer), "%d%s", l.integer, r.string);
+            int len = strlen(r.string) + CHARS_FOR_INT_TO_STRING;
+            char* buffer = malloc(sizeof(char)*(len+1));
+            snprintf(buffer, len+1, "%d%s", l.integer, r.string);
 
             SimplicValue res = eval_makeResultStr(buffer);
+            free(buffer);
             free(r.string);
             return res;
         }
@@ -314,9 +323,9 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         if (error->hasError) return eval_makeError_keepErrInfo(error);
         
         if (val.type == VALUE_INT) {
-            return eval_return(val.integer); // Sets a flag indicating that the last instruction was a return, used to stop eval()
+            return eval_returnInt(val.integer); // Sets a flag indicating that the last instruction was a return, used to stop eval()
         } else if (val.type == VALUE_STR) {
-            return eval_makeError(error, "Tried to return a string", ERROR_MISC);
+            return eval_returnStr(val.string);
         }
     }
 

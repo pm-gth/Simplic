@@ -1,6 +1,16 @@
 #ifndef SIMPLICERROR_H
 #define SIMPLICERROR_H
 
+/*
+=======================================================================================
+ Structure used to handle errors in the interpreter. Most modules have interfaces and
+ wrappers to throw errors (like ParserResult or Bankresult) which end up calling to
+ SimplicError. Simplic error contains a flag which indicates if an exception has been
+ thrown, an error message meant to be printed and an error ID which can be used to
+ try and recover from the exception
+=======================================================================================
+*/
+
 #include "simplic.h"
 
 typedef enum {
