@@ -11,6 +11,11 @@ int main(int argc, char *argv[]) {
 
     SimplicError* error = initError();
     const char* program = readScriptFile(argv[1], error);
+
+    if(error->hasError) {
+        printError(error);
+        return 1;
+    }
     
     printf("Script %s contents:\n%s\n", argv[1], program);
     

@@ -1,0 +1,10 @@
+# This program shows the result of X % MOD where X is any value between 0 an UPPERBOUND
+SET X = 0
+SET MOD = 3
+SET UPPERBOUND = 50
+
+WHILE X LT UPPERBOUND DO
+    SET RES = X % MOD
+    PRINTLN "Num: " + X + " Mod" + MOD + ": " + RES
+    INCR X
+DONE

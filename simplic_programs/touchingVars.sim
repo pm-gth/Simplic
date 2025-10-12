@@ -1,0 +1,9 @@
+SET I = 100
+SET J = 0
+
+WHILE I GT J DO
+    DECR I
+    INCR J
+    PRINTLN "{" + I + "," + J + "}"
+DONE
+

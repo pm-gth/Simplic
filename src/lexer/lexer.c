@@ -131,6 +131,9 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 		// Symbol or escape seq
 		while (src[i] == ' ' || src[i] == '\t' || src[i] == '\n') i++;
 
+		// Coment '#', skip to the next \n (or EOF)
+		if(src[i] == '#') { while(src[i] != '\n' && i < len) i++; }
+
 		if (src[i] == '=')  { i++; addTokenToTail(tokenList, TOKEN_EQUALS, "=", NULL); continue; }
 		if (src[i] == '+')  { i++; addTokenToTail(tokenList, TOKEN_PLUS, "+", NULL); continue; }
 		if (src[i] == '-')  { i++; addTokenToTail(tokenList, TOKEN_MINUS, "-", NULL); continue; }

@@ -1,0 +1,14 @@
+###############################################################################
+# Funcion que dados dos numeros, una base y un exponente, calcula la potencia #
+###############################################################################
+
+SET BASE = 4
+SET EXPONENTE = 2
+SET RESULTADO = 1 # Empezamos en 1, x^0 = 1
+
+WHILE EXPONENTE GT 0 DO
+    SET RESULTADO = RESULTADO * BASE
+    DECR EXPONENTE
+DONE
+PRINTLN "El resultado es: " + RESULTADO
+RETURN 0
