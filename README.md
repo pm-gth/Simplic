@@ -12,13 +12,13 @@ the variables in a memory bank
 Simplic's keywords must be written in caps, however, variables are case-sensitive,
 here are som examples of Simplic statements:
 	
-	> SET X = 11
-	> PRINTLN "My favourite number is: " + X
-	> UNSET X # X is removed from the variable bank
-	>
-	> WHILE X GT 0 DO 
-	> 	DECR X 
-	> DONE
+	SET X = 11
+	PRINTLN "My favourite number is: " + X
+	UNSET X # X is removed from the variable bank
+	
+	WHILE X GT 0 DO 
+	DECR X 
+	DONE
 
 More examples can be found in the "simplic_programs/" folder.
 
@@ -40,3 +40,7 @@ Just run the program with a script file as argument
 # To do
 Simplic is still fairly limited, I want to add suppor for if statements, arrys
 and more.
+
+# Special thanks
+To the Unity unit-testing framework, used to make this program's tests, it can 
+be found here:  https://github.com/ThrowTheSwitch/Unity
