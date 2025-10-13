@@ -40,11 +40,11 @@ Just run the program with a script file as argument
 > ./simplic simplic_programs/power.sim
 
 
-# To do
+## To do:
 Simplic is still fairly limited, I want to add suppor for goto statements, arrays
 and much more.
 
-# Special thanks
+## Special thanks:
 To the Unity unit-testing framework, used to make this program's tests, it can 
 be found here:  
 

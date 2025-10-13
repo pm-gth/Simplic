@@ -1,0 +1,35 @@
+# Infinite Turing tape with 9 vars
+SET X1
+SET X2
+SET X3
+SET X4
+SET X5
+SET X6
+SET X7
+SET X8
+SET X9
+
+SET HEAD = 1
+
+WHILE 1 EQ 1 DO
+    # Change cell value depending on head position
+    IF HEAD EQ 1 THEN SET X1 = 1 - X1 FI
+    IF HEAD EQ 2 THEN SET X2 = 1 - X2 FI
+    IF HEAD EQ 3 THEN SET X3 = 1 - X3 FI
+    IF HEAD EQ 4 THEN SET X4 = 1 - X4 FI
+    IF HEAD EQ 5 THEN SET X5 = 1 - X5 FI
+    IF HEAD EQ 6 THEN SET X6 = 1 - X6 FI
+    IF HEAD EQ 7 THEN SET X7 = 1 - X7 FI
+    IF HEAD EQ 8 THEN SET X8 = 1 - X8 FI
+    IF HEAD EQ 9 THEN SET X9 = 1 - X9 FI
+
+    # Print tape
+    PRINTLN "HEAD: " + HEAD + " | Tape: " + X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9
+
+    # Advance head from 1 to 9
+    IF HEAD EQ 9 THEN
+        SET HEAD = 1
+    ELSE
+        SET HEAD = HEAD + 1
+    FI
+DONE

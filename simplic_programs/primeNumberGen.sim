@@ -11,11 +11,11 @@ WHILE X LT UPPERBOUND DO
     WHILE Y * Y LEQ X DO
         IF X % Y EQ 0 THEN
             SET ISPRIME = 0
-		FI
-		INCR Y
-	DONE
-	IF ISPRIME THEN 
-		PRINTLN X + " is a prime number"
-	FI 
-	INCR X
+        FI
+        INCR Y
+    DONE
+    IF ISPRIME THEN 
+        PRINTLN X + " is a prime number"
+    FI 
+    INCR X
 DONE
