@@ -1,1 +1,1 @@
-include/simplicError.c linguist-language=C
+include/simplicError.h linguist-language=C
