@@ -44,8 +44,8 @@ struct SyntaxNode {
     char operator[BIN_OP_OPERATOR_SIZE];  // For bin_ops
     int numberValue;    // For numbers
     char* string; // For strings
-    SyntaxNode** blockStatements; // For blocks of code
-    SyntaxNode* subnodeA;
+    SyntaxNode** blockStatements; // List of Syntax trees, used to store blocks of instructions
+    SyntaxNode* subnodeA; // Subnodes used to store different kind of data depending on the father's node type
     SyntaxNode* subnodeB;
     SyntaxNode* subnodeC;
 };

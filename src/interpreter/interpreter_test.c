@@ -352,6 +352,87 @@ void nestedWhileLoop(void) {
     TEST_ASSERT_EQUAL_INT(30, val.integer);
 }
 
+void ifStatement(void) {
+     const char* program =
+        "SET X = 3\n"
+        "IF X % 2 NEQ 0 THEN\n"
+            "RETURN 1\n"
+        "ELSE\n"
+            "RETURN 0\n"
+        "FI";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(1, val.integer);
+}
+
+void elseStatement(void) {
+     const char* program =
+        "SET X = 4\n"
+        "IF X % 2 NEQ 0 THEN\n"
+            "RETURN 1\n"
+        "ELSE\n"
+            "RETURN 0\n"
+        "FI";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(0, val.integer);
+}
+
+// Used to check if early returns ignore the rest of the code
+void returnFromNested(void) {
+     const char* program =
+        "SET X = 0\n"
+        "WHILE X LT 5 DO\n"
+            "INCR X\n"
+            "IF X EQ 5 THEN\n"
+                "RETURN 0\n"
+            "FI\n"
+        "DONE\n"
+        "RETURN 1\n";
+
+    bool end = false;
+    SimplicValue val;
+    while(!end){
+        tokenizeSource(&tokenList, program, error);
+        tree = parseTokenList(&tokenList, error);
+        val = eval(tree, error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+
+        freeSyntaxTree(tree);
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(0, val.integer);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(testReturnCorrectInt);
@@ -368,5 +449,8 @@ int main(void) {
     RUN_TEST(unsetVariable);
     RUN_TEST(whileLoop);
     RUN_TEST(nestedWhileLoop);
+    RUN_TEST(ifStatement);
+    RUN_TEST(elseStatement);
+    RUN_TEST(returnFromNested);
     return UNITY_END();
 }

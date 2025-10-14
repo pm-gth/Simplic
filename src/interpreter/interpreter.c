@@ -1,9 +1,7 @@
-#include "interpreter.h"
 #include "private_interpreter.h"
 #include "parser.h"
 #include "simplic.h"
 #include "simplicError.h"
-#include <string.h>
 
 MemoryCell* MemoryBank[HASH_TABLE_SIZE];
 

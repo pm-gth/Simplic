@@ -1,6 +1,4 @@
-###############################################################################
-# Funcion que dados dos numeros, una base y un exponente, calcula la potencia #
-###############################################################################
+# Program that computes powers
 
 SET BASE = 4
 SET EXPONENTE = 2
