@@ -59,5 +59,6 @@ int main(int argc, char *argv[]) {
     emptyTokenList(&tokenList);
     emptyMemoryBank();
     deleteError(&error);
+    free((char*)program);
     return 0;
 }
