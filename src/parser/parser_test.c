@@ -9,11 +9,11 @@
 Token*tokenList;
 
 void setUp(void) {
-    tokenList = initTokenList();
+    tokenList = initTokenQueue();
 }
 
 void tearDown(void) {
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
 }
 
 void testParseSet(void){
@@ -45,7 +45,7 @@ void testParseSet(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -69,7 +69,7 @@ void testParsePrint(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -82,7 +82,7 @@ void testParseReturn(void){
     TEST_ASSERT_TRUE(result.hasError);
 
     freeSyntaxTree(result.node);
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -107,7 +107,7 @@ void testParseSetDeclarationOnly(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     deleteError(&error);
 }
 

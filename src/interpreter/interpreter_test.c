@@ -9,13 +9,13 @@ SimplicError* error;
 SyntaxNode* tree;
 
 void setUp(void) {
-    tokenList = initTokenList();
+    tokenList = initTokenQueue();
     initMemoryBank();
     error = initError();
 }
 
 void tearDown(void) {
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     emptyMemoryBank();
     deleteError(&error);
 }

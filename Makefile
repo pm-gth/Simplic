@@ -1,7 +1,7 @@
 default: simplic
 
 CC = gcc
-INCLUDES = -I include/ -I thirdparty/
+INCLUDES = -I include/ -I include/dataStructures -I thirdparty/
 BUILD_ROOT_DIR = build
 
 TEST_DIR = $(BUILD_ROOT_DIR)/tests
@@ -31,13 +31,16 @@ $(TEST_DIR):
 
 # ----------- BUILD TARGETS -----------
 
-simplic: $(BUILD_DIR) lexer.o simplicError.o parser.o interpreter.o scriptReader.o main.o
-	$(CC) $(CFLAGS) $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
+simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o interpreter.o scriptReader.o main.o
+	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
 
 run: simplic
 	./$(BUILD_DIR)/simplic
 
 # ----------- BUILD OBJECTS -----------
+
+token.o: $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/token -c src/dataStructures/token/token.c -o $(BUILD_DIR)/token.o
 
 lexer.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/lexer -c src/lexer/lexer.c -o $(BUILD_DIR)/lexer.o
@@ -64,26 +67,30 @@ unity.o: $(TEST_DIR)
 
 # ----------- TEST BINARIES -----------
 
-lexerTest: $(TEST_DIR) unity.o simplicError.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/lexer/ src/lexer/lexer_test.c $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/lexerTest
+tokenTest: $(TEST_DIR) unity.o simplicError.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/dataStructures/token/ src/dataStructures/token/token_test.c $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/tokenTest
 
-parserTest: $(TEST_DIR) unity.o simplicError.o lexer.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/parser/ src/parser/parser_test.c $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/parserTest
+lexerTest: $(TEST_DIR) unity.o simplicError.o token.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/lexer/ src/lexer/lexer_test.c $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/token.o -o $(TEST_DIR)/lexerTest
 
-interpreterTest: $(TEST_DIR) unity.o simplicError.o lexer.o parser.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES)  -I src/interpreter/ src/interpreter/interpreter_test.c $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o -o $(TEST_DIR)/interpreterTest
+parserTest: $(TEST_DIR) unity.o simplicError.o token.o lexer.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/parser/ src/parser/parser_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/parserTest
+
+interpreterTest: $(TEST_DIR) unity.o simplicError.o token.o lexer.o parser.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES)  -I src/interpreter/ src/interpreter/interpreter_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o -o $(TEST_DIR)/interpreterTest
 
 errorTest: $(TEST_DIR) unity.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/simplicError/ src/simplicError/simplicError_test.c $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o -o $(TEST_DIR)/errorTest
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/simplicError/ src/simplicError/simplicError_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(TEST_DIR)/unity.o -o $(TEST_DIR)/errorTest
 
 # ----------- TEST TARGETS -----------
 
-test: lexerTest parserTest interpreterTest errorTest
+test: tokenTest lexerTest parserTest interpreterTest errorTest
 	@echo "All tests built"
 
 runTest: test
 	@echo "Running Tests..."
 	@echo "-----------------------------"
+	@./$(TEST_DIR)/tokenTest || { echo "tokenTest failed"; exit 1; }
 	@./$(TEST_DIR)/lexerTest || { echo "lexerTest failed"; exit 1; }
 	@./$(TEST_DIR)/parserTest || { echo "parserTest failed"; exit 1; }
 	@./$(TEST_DIR)/interpreterTest || { echo "interpreterTest failed"; exit 1; }

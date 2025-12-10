@@ -25,7 +25,7 @@ void isAlphaWorks(void) {
     for(int i = 0; i < 6; i++){
         TEST_ASSERT_TRUE(isAlpha(c[i]));
     }
-    
+
     char c1[6] = {'2', '-', '#', '\n', '%', '0'};
 
     for(int i = 0; i < 6; i++){
@@ -39,7 +39,7 @@ void isNumberWorks(void) {
     for(int i = 0; i < 6; i++){
         TEST_ASSERT_TRUE(isNumber(c[i]));
     }
-    
+
     char c1[6] = {'a', '+', '#', '\t', 'b', 'A'};
 
     for(int i = 0; i < 6; i++){
@@ -53,7 +53,7 @@ void isAlphaNumerWorks(void) {
     for(int i = 0; i < 6; i++){
         TEST_ASSERT_TRUE(isAlphaNumer(c[i]));
     }
-    
+
     char c1[6] = {'\\', '+', '#', '\t', '!', '\''};
 
     for(int i = 0; i < 6; i++){
@@ -61,55 +61,22 @@ void isAlphaNumerWorks(void) {
     }
 }
 
-void tokenLinkedListWorks(void){
-    Token* myList = initTokenList();
-
-    addTokenToTail(&myList, TOKEN_PRINT, "One", NULL);
-    addTokenToTail(&myList, TOKEN_EQUALS, "Two", NULL);
-    addTokenToTail(&myList, TOKEN_NUMBER, "Three", NULL);
-    addTokenToTail(&myList, TOKEN_VAR, "Four", NULL);
-    addTokenToTail(&myList, TOKEN_EOF, "Five", NULL);
-
-    removeTokenFromHead(&myList);
-
-    // Create fake temp stdout file to compare output
-    char buffer[128];
-    FILE *original_stdout = stdout;
-    FILE *fake_stdout = tmpfile();
-
-    stdout = fake_stdout;
-
-    printTokens(myList);
-
-    fflush(fake_stdout);
-    fseek(fake_stdout, 0, SEEK_SET);
-    
-    int n = fread(buffer, 1, sizeof(buffer) - 1, fake_stdout);
-    buffer[n] = '\0';
-
-    stdout = original_stdout; // restore stdout
-    fclose(fake_stdout);
-
-    TEST_ASSERT_EQUAL_STRING("Two Three Four Five\n", buffer);
-    emptyTokenList(&myList);
-}
-
 void tokenizeWorks(){
     const char* program = "SET X = 34\n"
                           "PRINT X\0";
-                          
+
     SimplicError* error = initError();
-    Token* myList = initTokenList();
-    Token* testList = initTokenList();
+    Token* myList = initTokenQueue();
+    Token* testList = initTokenQueue();
 
-    addTokenToTail(&testList, TOKEN_SET, "SET", NULL);
-    addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
-    addTokenToTail(&testList, TOKEN_EQUALS, "=", NULL);
-    addTokenToTail(&testList, TOKEN_NUMBER, "34", NULL);
+    enqueueToken(&testList, TOKEN_SET, "SET", NULL);
+    enqueueToken(&testList, TOKEN_VAR, "X", NULL);
+    enqueueToken(&testList, TOKEN_EQUALS, "=", NULL);
+    enqueueToken(&testList, TOKEN_NUMBER, "34", NULL);
 
-    addTokenToTail(&testList, TOKEN_PRINT, "PRINT", NULL);
-    addTokenToTail(&testList, TOKEN_VAR, "X", NULL);
-    addTokenToTail(&testList, TOKEN_EOF, "", NULL);
+    enqueueToken(&testList, TOKEN_PRINT, "PRINT", NULL);
+    enqueueToken(&testList, TOKEN_VAR, "X", NULL);
+    enqueueToken(&testList, TOKEN_EOF, "", NULL);
 
     tokenizeSource(&myList, program, error);
 
@@ -138,7 +105,7 @@ void tokenizeWorks(){
 
 
     const char* errmsg = "Error: token list contents do not match its supposed values";
-    
+
     while(currentToken != NULL){
         TEST_ASSERT_EQUAL_STRING_MESSAGE(currentTestToken->name, currentToken->name, errmsg);
         TEST_ASSERT_TRUE_MESSAGE(currentTestToken->type == currentToken->type, errmsg);
@@ -147,8 +114,8 @@ void tokenizeWorks(){
         currentTestToken = currentTestToken->next;
     }
 
-    emptyTokenList(&myList);
-    emptyTokenList(&testList);
+    emptyTokenQueue(&myList);
+    emptyTokenQueue(&testList);
     deleteError(&error);
 }
 
@@ -157,7 +124,6 @@ int main(void) {
     RUN_TEST(isAlphaWorks);
     RUN_TEST(isNumberWorks);
     RUN_TEST(isAlphaNumerWorks);
-    RUN_TEST(tokenLinkedListWorks);
     RUN_TEST(tokenizeWorks);
     return UNITY_END();
 }

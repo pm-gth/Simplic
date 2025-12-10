@@ -14,8 +14,6 @@ struct ParseResult{
 static ParseResult makeResult(SyntaxNode* n);
 ParseResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
 
-static Token* peek(Token** tokenList); // Returns current token
-static Token advance(Token** tokenList); // Pops out a token and returns a copy of it
 TokenType findIfBlockDelimiter(Token** tokenList); // Determines if the IF block delimiter is ELSE or FI (or none)
 
 static bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b); // Used to compare AST in tests

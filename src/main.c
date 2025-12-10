@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     
     printf("Script %s contents:\n%s\n\nProgram Output:\n\n", argv[1], program);
     
-    Token* tokenList = initTokenList();
+    Token* tokenList = initTokenQueue();
     initMemoryBank();
     SimplicValue val;
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         free(val.string);
     }
     
-    emptyTokenList(&tokenList);
+    emptyTokenQueue(&tokenList);
     emptyMemoryBank();
     deleteError(&error);
     free((char*)program);

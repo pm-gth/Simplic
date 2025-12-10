@@ -1,22 +1,7 @@
 #include "parser.h"
 #include "private_parser.h"
-#include "lexer.h"
+#include "dataStructures/token.h"
 #include "simplicError.h"
-
-Token* peek(Token** tokenList) {
-    return *tokenList;
-}
-
-Token advance(Token** tokenList) {
-    Token copy;
-    copy.type = (*tokenList)->type;
-    copy.next = (*tokenList)->next;
-    strcpy(copy.name, (*tokenList)->name);
-
-    removeTokenFromHead(tokenList);
-
-    return copy;
-}
 
 TokenType findIfBlockDelimiter(Token** tokenList) {
     Token* curr = *tokenList;
@@ -201,7 +186,7 @@ ParseResult makeError_keepErrInfo(SimplicError* err) {
 }
 
 ParseResult parseStatement(Token** tokenList, SimplicError* error) {
-    Token* t = peek(tokenList);
+    Token* t = peekTokenQueue(tokenList);
 
     if (!t) return makeError(error, ERROR_UNKNOWN_INSTRUCTION, "Unexpected end of token list");
 
@@ -227,18 +212,18 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Subnode B: new value for the variable 
     // ------------------------------------------
     if (t->type == TOKEN_SET) {
-        advance(tokenList); // consume SET
-        Token var = advance(tokenList); // variable name
+        dequeueToken(tokenList); // consume SET
+        Token var = dequeueToken(tokenList); // variable name
 
         SyntaxNode* valueNode;
-        if(peek(tokenList)->type != TOKEN_EQUALS){
+        if(peekTokenQueue(tokenList)->type != TOKEN_EQUALS){
             // The variable is only being declared
             // Create a number node with 0 to initilize
             valueNode = initNode();
             valueNode->type = NODE_NUMBER;
             valueNode->numberValue = 0;
         } else {
-            advance(tokenList); // consume '='
+            dequeueToken(tokenList); // consume '='
             ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
             if (expr.hasError || !expr.node)
                 return makeError(error, ERROR_INVALID_EXPR, "Invalid expression in SET statement");
@@ -256,8 +241,8 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // UNSET Node -> Variable name
     // ------------------------------------------
     if (t->type == TOKEN_UNSET) {
-        advance(tokenList); // consume UNSET
-        Token var = advance(tokenList); // variable name
+        dequeueToken(tokenList); // consume UNSET
+        Token var = dequeueToken(tokenList); // variable name
         SyntaxNode* n = initNode();
         n->type = NODE_UNASSIGN;
         strcpy(n->varName, var.name);
@@ -270,7 +255,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // ------------------------------------------
     if (t->type == TOKEN_PRINT || t->type == TOKEN_PRINTLN) {
         TokenType oldType = t->type;
-        advance(tokenList); // consume PRINT
+        dequeueToken(tokenList); // consume PRINT
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, ERROR_INVALID_EXPR, "Invalid PRINT expression");
@@ -285,7 +270,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Subnode B: value to be returned
     // ------------------------------------------
     if (t->type == TOKEN_RETURN) {
-        advance(tokenList); // consume RETURN
+        dequeueToken(tokenList); // consume RETURN
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, ERROR_INVALID_EXPR, "Invalid RETURN expression");
@@ -301,7 +286,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // ------------------------------------------
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult expr = parseLowestPrecedenceOperation(tokenList, error);
         if (expr.hasError || !expr.node)
             return makeError(error, ERROR_INVALID_EXPR, "Invalid expression in INCR/DECR statement");
@@ -317,15 +302,15 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Subnode B: block of code
     // ------------------------------------------
     if (t->type == TOKEN_WHILE) {
-        advance(tokenList); // consume WHILE
+        dequeueToken(tokenList); // consume WHILE
         // Condition
         ParseResult cond = parseLowestPrecedenceOperation(tokenList, error);
         if (cond.hasError || !cond.node)
             return makeError_keepErrInfo(error);
 
-        if (peek(tokenList)->type != TOKEN_DO)
-            return makeError(error, ERROR_MISC, "WHILE missing DO keyword, instead recived %s", peek(tokenList)->name);
-        advance(tokenList); // consume DO
+        if (peekTokenQueue(tokenList)->type != TOKEN_DO)
+            return makeError(error, ERROR_MISC, "WHILE missing DO keyword, instead recived %s", peekTokenQueue(tokenList)->name);
+        dequeueToken(tokenList); // consume DO
 
         // Body (block)
         SyntaxNode* body = parseBlock(tokenList, error, TOKEN_DONE);
@@ -347,15 +332,15 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
     // Subnode C: NULL or else code block
     // ------------------------------------------
     if (t->type == TOKEN_IF) {
-        advance(tokenList); // consume IF
+        dequeueToken(tokenList); // consume IF
         // Condition
         ParseResult cond = parseLowestPrecedenceOperation(tokenList, error);
         if (cond.hasError || !cond.node)
             return makeError_keepErrInfo(error);
 
-        if (peek(tokenList)->type != TOKEN_THEN)
-            return makeError(error, ERROR_MISC, "IF missing THEN keyword, instead recived %s", peek(tokenList)->name);
-        advance(tokenList); // consume THEN
+        if (peekTokenQueue(tokenList)->type != TOKEN_THEN)
+            return makeError(error, ERROR_MISC, "IF missing THEN keyword, instead recived %s", peekTokenQueue(tokenList)->name);
+        dequeueToken(tokenList); // consume THEN
 
         // Determine if block delimiter is FI or ELSE
         TokenType blockDelimiter = findIfBlockDelimiter(tokenList);
@@ -389,7 +374,7 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
 
 
 ParseResult parseFactor(Token** tokenList, SimplicError* error) {
-    Token* t = peek(tokenList);
+    Token* t = peekTokenQueue(tokenList);
 
     // ------------------------------------------
     // NUMBER Node -> its value
@@ -398,7 +383,7 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         SyntaxNode* n = initNode();
         n->type = NODE_NUMBER;
         n->numberValue = atoi(t->name);
-        advance(tokenList);
+        dequeueToken(tokenList);
         return makeResult(n);
     } 
 
@@ -409,7 +394,7 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         SyntaxNode* n = initNode();
         n->type = NODE_VAR;
         strcpy(n->varName, t->name);
-        advance(tokenList);
+        dequeueToken(tokenList);
         return makeResult(n);
     }
 
@@ -422,7 +407,7 @@ ParseResult parseFactor(Token** tokenList, SimplicError* error) {
         n->string = malloc(sizeof(char)*(strlen(t->string)+1));
         n->numberValue = 0;
         strcpy(n->string, t->string);
-        advance(tokenList);
+        dequeueToken(tokenList);
         return makeResult(n);
     }
 
@@ -438,10 +423,10 @@ ParseResult parseTerm(Token** tokenList, SimplicError* error) {
     // Subnode A: first operand
     // Subnode B: second operand
     // ------------------------------------------
-    while (peek(tokenList)->type == TOKEN_MULT || peek(tokenList)->type == TOKEN_DIV || peek(tokenList)->type == TOKEN_MOD) {
-        TokenType oldType = peek(tokenList)->type; // Save ops type, we need to advance in the list for the second operand
+    while (peekTokenQueue(tokenList)->type == TOKEN_MULT || peekTokenQueue(tokenList)->type == TOKEN_DIV || peekTokenQueue(tokenList)->type == TOKEN_MOD) {
+        TokenType oldType = peekTokenQueue(tokenList)->type; // Save ops type, we need to advance in the list for the second operand
 
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult right = parseFactor(tokenList, error);
 
         if (right.hasError || !right.node)
@@ -482,10 +467,10 @@ ParseResult parseExpr(Token** tokenList, SimplicError* error) {
     // Subnode A: first operand
     // Subnode B: second operand
     // ------------------------------------------
-    while (peek(tokenList)->type == TOKEN_PLUS || peek(tokenList)->type == TOKEN_MINUS) {
-        TokenType oldType = peek(tokenList)->type;
+    while (peekTokenQueue(tokenList)->type == TOKEN_PLUS || peekTokenQueue(tokenList)->type == TOKEN_MINUS) {
+        TokenType oldType = peekTokenQueue(tokenList)->type;
 
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult right = parseTerm(tokenList, error);
 
         if (right.hasError || !right.node)
@@ -521,10 +506,10 @@ ParseResult parseRelational(Token** tokenList, SimplicError* error) {
     // Subnode A: first operand
     // Subnode B: second operand
     // ------------------------------------------
-    while (peek(tokenList)->type == TOKEN_GT || peek(tokenList)->type == TOKEN_GEQ || peek(tokenList)->type == TOKEN_LT || peek(tokenList)->type == TOKEN_LEQ) {
-        TokenType oldType = peek(tokenList)->type;
+    while (peekTokenQueue(tokenList)->type == TOKEN_GT || peekTokenQueue(tokenList)->type == TOKEN_GEQ || peekTokenQueue(tokenList)->type == TOKEN_LT || peekTokenQueue(tokenList)->type == TOKEN_LEQ) {
+        TokenType oldType = peekTokenQueue(tokenList)->type;
 
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult right = parseTerm(tokenList, error);
 
         if (right.hasError || !right.node)
@@ -566,10 +551,10 @@ ParseResult parseEquality(Token** tokenList, SimplicError* error) {
     // Subnode A: first operand
     // Subnode B: second operand
     // ------------------------------------------
-    while (peek(tokenList)->type == TOKEN_EQ || peek(tokenList)->type == TOKEN_NEQ) {
-        TokenType oldType = peek(tokenList)->type;
+    while (peekTokenQueue(tokenList)->type == TOKEN_EQ || peekTokenQueue(tokenList)->type == TOKEN_NEQ) {
+        TokenType oldType = peekTokenQueue(tokenList)->type;
 
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult right = parseRelational(tokenList, error);
 
         if (right.hasError || !right.node)
@@ -605,10 +590,10 @@ ParseResult parseLogical(Token** tokenList, SimplicError* error) {
     // Subnode A: first operand
     // Subnode B: second operand
     // ------------------------------------------
-    while (peek(tokenList)->type == TOKEN_AND || peek(tokenList)->type == TOKEN_OR) {
-        TokenType oldType = peek(tokenList)->type;
+    while (peekTokenQueue(tokenList)->type == TOKEN_AND || peekTokenQueue(tokenList)->type == TOKEN_OR) {
+        TokenType oldType = peekTokenQueue(tokenList)->type;
 
-        advance(tokenList);
+        dequeueToken(tokenList);
         ParseResult right = parseEquality(tokenList, error);
 
         if (right.hasError || !right.node)
@@ -654,7 +639,7 @@ SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToke
     SyntaxNode** blockStatements = NULL;
     int statementCount = 0;
 
-    while (peek(tokenList)->type != endToken && !error->hasError && peek(tokenList)->type != TOKEN_EOF) {
+    while (peekTokenQueue(tokenList)->type != endToken && !error->hasError && peekTokenQueue(tokenList)->type != TOKEN_EOF) {
         ParseResult statement = parseStatement(tokenList, error);
 
         // If null, we reached endToken
@@ -664,11 +649,11 @@ SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToke
         blockStatements[statementCount++] = statement.node;
     }
 
-    if (peek(tokenList)->type != endToken && peek(tokenList)->type != TOKEN_EOF)
-        makeError(error, ERROR_NON_TERMINATED_BLOCK, "Expected matching block terminator, instead received: %s", peek(tokenList)->name);
+    if (peekTokenQueue(tokenList)->type != endToken && peekTokenQueue(tokenList)->type != TOKEN_EOF)
+        makeError(error, ERROR_NON_TERMINATED_BLOCK, "Expected matching block terminator, instead received: %s", peekTokenQueue(tokenList)->name);
 
-    if (peek(tokenList)->type == endToken)
-        advance(tokenList); // consume endToken
+    if (peekTokenQueue(tokenList)->type == endToken)
+        dequeueToken(tokenList); // consume endToken
 
     SyntaxNode* block = initNode();
     block->type = NODE_BLOCK;
