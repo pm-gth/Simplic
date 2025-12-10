@@ -13,7 +13,7 @@
 #include "simplicError.h"
 #include "dataStructures/token.h"
 
-// Receives null-terminated string as input, creates linked list of tokens from a source code
+// Receives null-terminated string as input, creates queue of tokens from a source code
 void tokenizeSource(Token** tokenList, const char* src, SimplicError* error);
 
 #endif

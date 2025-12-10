@@ -1,6 +1,4 @@
-#include "lexer.h"
 #include "private_lexer.h"
-#include "simplicError.h"
 
 const char* src;
 
