@@ -1,6 +1,7 @@
 default: simplic
 
 CC = gcc
+BIN_NAME = "simplic"
 INCLUDES = -I include/ -I include/dataStructures -I thirdparty/
 BUILD_ROOT_DIR = build
 
@@ -32,10 +33,10 @@ $(TEST_DIR):
 # ----------- BUILD TARGETS -----------
 
 simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o memoryBank.o interpreter.o scriptReader.o ast.o main.o
-	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
+	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/$(BIN_NAME)
 
 run: simplic
-	./$(BUILD_DIR)/simplic
+	./$(BUILD_DIR)/$(BIN_NAME)
 
 # ----------- BUILD OBJECTS -----------
 
