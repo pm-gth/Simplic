@@ -32,7 +32,7 @@ void testReturnCorrectInt(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError)
@@ -57,7 +57,7 @@ void testComplexOperations(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError)
@@ -78,7 +78,7 @@ void accessToUndeclaredVariable(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -101,7 +101,7 @@ void divisionByZero(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -123,7 +123,7 @@ void stringConcatenation(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -147,7 +147,7 @@ void stringAndNumberConcatenation(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -171,7 +171,7 @@ void relationalOperationsGreater(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -193,7 +193,7 @@ void relationalOperationsLower(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -215,7 +215,7 @@ void equalityOperationsEqual(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -237,7 +237,7 @@ void equalityOperationsNotEqual(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -261,7 +261,7 @@ void logicalOperatorsAndOr(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -284,7 +284,7 @@ void unsetVariable(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -308,7 +308,7 @@ void whileLoop(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -341,7 +341,7 @@ void nestedWhileLoop(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -367,7 +367,7 @@ void ifStatement(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -393,7 +393,7 @@ void elseStatement(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 
@@ -422,7 +422,7 @@ void returnFromNested(void) {
     SimplicValue val;
     while(!end){
         tokenizeSource(&tokenList, program, error);
-        tree = parseTokenList(&tokenList, error);
+        tree = parseLineOfCode(&tokenList, error);
         val = eval(tree, error);
 
         if(val.receivedReturn || error->hasError) 

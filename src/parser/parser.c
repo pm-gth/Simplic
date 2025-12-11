@@ -1,3 +1,4 @@
+#include "dataStructures/ast.h"
 #include "private_parser.h"
 
 TokenType findIfBlockDelimiter(Token** tokenList) {
@@ -494,11 +495,6 @@ ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* erro
     return parseLogical(tokenList, error);
 }
 
-SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error) {
-    ParseResult res = parseStatement(tokenList, error);
-    return  res.node;
-}
-
 SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken) {
     // A block node has a list of ASTs (blockStatements) that will be run in one sitting by the interpreter
     // ------------------------------------------
@@ -533,4 +529,18 @@ SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToke
     block->blockStatements[statementCount] = NULL; // Null terminated statement list
 
     return block;
+}
+
+SyntaxNode* parseLineOfCode(Token** tokenList, SimplicError* error) {
+    ParseResult res = parseStatement(tokenList, error);
+    return  res.node;
+}
+
+void parseFullCode(Token** tokenList, SimplicError* error) {
+    SyntaxNode* lineAst;
+
+    do {
+        lineAst = parseLineOfCode(tokenList, error);
+        addLineAstArray(lineAst);
+    } while(lineAst && !error->hasError);
 }

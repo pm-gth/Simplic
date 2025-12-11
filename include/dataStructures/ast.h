@@ -50,4 +50,11 @@ SyntaxNode* initNode(void); // Used to create a node, sets to NULL its fields
 void freeSyntaxTree(SyntaxNode* tree);
 bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b); // Used to compare AST in tests
 
+extern SyntaxNode** astArray; // List of AST trees, each one containing a line from the script
+
+void initAstArray(void);
+void addLineAstArray(SyntaxNode* tree); // Add AST tree to the AST-Array
+void deleteAstArray(void); // Deallocate AST-Array
+size_t astArraySize(void);
+
 #endif

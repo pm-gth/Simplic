@@ -20,6 +20,7 @@
 #include "dataStructures/ast.h"
 
 // Parses a line of code from the token list and generates an AST used later for execution
-SyntaxNode* parseTokenList(Token** tokenList, SimplicError* error);
+SyntaxNode* parseLineOfCode(Token** tokenList, SimplicError* error);
+void parseFullCode(Token** tokenList, SimplicError* error);
 
 #endif

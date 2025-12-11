@@ -1,3 +1,4 @@
+#include "dataStructures/ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "interpreter.h"
@@ -20,26 +21,22 @@ int main(int argc, char *argv[]) {
     printf("Script %s contents:\n%s\n\nProgram Output:\n\n", argv[1], program);
     
     Token* tokenList = initTokenQueue();
+    initAstArray();
     initMemoryBank();
     SimplicValue val;
 
     tokenizeSource(&tokenList, program, error);
+    parseFullCode(&tokenList, error);
 
-    for (;;) {
-        SyntaxNode* result = parseTokenList(&tokenList, error);
-
-        if (!result && !error->hasError) {
-            break; // Reached EOF with no return
-        }
-            
-        if (error->hasError) {
+    if (error->hasError) {
             printError(error);
-            break;
+            return 1;
         }
 
-        val = eval(result, error);
-        freeSyntaxTree(result);
-        
+    size_t lines = astArraySize();
+
+    for (int i = 0; i < lines; i++) {
+        val = eval(astArray[i], error);
 
         if (error->hasError) {
             printError(error);
@@ -57,6 +54,7 @@ int main(int argc, char *argv[]) {
     }
     
     deleteTokenQueue(&tokenList);
+    deleteAstArray();
     deleteMemoryBank();
     deleteError(&error);
     free((char*)program);
