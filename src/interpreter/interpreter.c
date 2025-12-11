@@ -63,7 +63,7 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
         return res;
     }
     if(node->type == NODE_VAR){
-        if(varIsInt(node->varName, error) && !error->hasError){
+        if(varIsInt(node->varName, error) && !error->hasError) { 
             // Variable is an int
             BankResult res = getInt(node->varName, error);
             if(res.hasError){

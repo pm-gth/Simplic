@@ -86,7 +86,7 @@ void printTokenQueue(Token* tokenList){
 	printf("%s\n", curr->name); // Last token
 }
 
-int emptyTokenQueue(Token** tokenList){
+int deleteTokenQueue(Token** tokenList){
 	// Case: List is empty
 	if(*tokenList == NULL){
 		return -1;

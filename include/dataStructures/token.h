@@ -60,7 +60,7 @@ Token* createToken(TokenType type, const char* name, char* string);
 
 // Token queue functions
 Token* initTokenQueue(void);
-int emptyTokenQueue(Token** tokenList); // -1 if list is already empty
+int deleteTokenQueue(Token** tokenList); // -1 if list is already empty
 
 int enqueueToken(Token** tokenList, TokenType type, const char* name, char* string); // -1 if fail
 Token dequeueToken(Token** tokenList); // Pops out a token and returns a copy of it

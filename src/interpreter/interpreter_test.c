@@ -16,7 +16,7 @@ void setUp(void) {
 }
 
 void tearDown(void) {
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
     deleteMemoryBank();
     deleteError(&error);
 }

@@ -114,8 +114,8 @@ void tokenizeWorks(){
         currentTestToken = currentTestToken->next;
     }
 
-    emptyTokenQueue(&myList);
-    emptyTokenQueue(&testList);
+    deleteTokenQueue(&myList);
+    deleteTokenQueue(&testList);
     deleteError(&error);
 }
 

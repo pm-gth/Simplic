@@ -42,7 +42,7 @@ void tokenQueueWorks(void){
     fclose(fake_stdout);
 
     TEST_ASSERT_EQUAL_STRING("Two Three Four Five\n", buffer);
-    emptyTokenQueue(&myList);
+    deleteTokenQueue(&myList);
 }
 
 

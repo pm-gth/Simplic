@@ -4,7 +4,6 @@
 #include "unity_internals.h"
 
 #include "parser.c"
-#include <string.h>
 
 Token*tokenList;
 
@@ -13,7 +12,7 @@ void setUp(void) {
 }
 
 void tearDown(void) {
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
 }
 
 void testParseSet(void){
@@ -45,7 +44,7 @@ void testParseSet(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -69,7 +68,7 @@ void testParsePrint(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -82,7 +81,7 @@ void testParseReturn(void){
     TEST_ASSERT_TRUE(result.hasError);
 
     freeSyntaxTree(result.node);
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
     deleteError(&error);
 }
 
@@ -107,7 +106,7 @@ void testParseSetDeclarationOnly(void){
     freeSyntaxTree(result.node);
     freeSyntaxTree(root);
 
-    emptyTokenQueue(&tokenList);
+    deleteTokenQueue(&tokenList);
     deleteError(&error);
 }
 
