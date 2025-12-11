@@ -158,6 +158,7 @@ void stringAndNumberConcatenation(void) {
 
     TEST_ASSERT_FALSE(error->hasError);
     TEST_ASSERT_EQUAL_STRING("YOUR LUCKY NUMBER IS: 2", val.string);
+    
     free(val.string);
 }
 

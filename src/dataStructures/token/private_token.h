@@ -3,6 +3,7 @@
 
 #include "dataStructures/token.h"
 
+static void freeToken(Token* token); // Destructor
 static void deleteFirstToken(Token** tokenList); // Frees and removes token from list
 
 #endif

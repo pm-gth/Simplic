@@ -49,12 +49,7 @@ int enqueueToken(Token** tokenList, TokenType type, const char* name, char* stri
 	return 0;
 }
 
-void deleteFirstToken(Token** tokenList){
-	// If it's a string token, remove its content
-	if((*tokenList)->string != NULL){
-		free((*tokenList)->string);
-	}
-	
+void deleteFirstToken(Token** tokenList) {
 	// Case: List is empty
 	if(*tokenList == NULL){
 		return;
@@ -62,15 +57,23 @@ void deleteFirstToken(Token** tokenList){
 
 	// Case: List only has one element
 	if((*tokenList)->next == NULL){
-		free(*tokenList);
+		freeToken(*tokenList);
 		*tokenList = NULL;
 	}
 	// Case: List has two or more elements
 	else{
 		Token* oldHead = *tokenList;
 		*tokenList = (*tokenList)->next;
-		free(oldHead);
+		freeToken(oldHead);
 	}
+}
+
+void freeToken(Token* token) {
+	// If it's a string token, remove its content
+	if(token->string != NULL){
+		free(token->string);
+	}
+	free(token);
 }
 
 void printTokenQueue(Token* tokenList){
@@ -95,10 +98,10 @@ int emptyTokenQueue(Token** tokenList){
 
 	while(curr->next != NULL){
 		oldNext = curr->next;
-		free(curr);
+		freeToken(curr);
 		curr = oldNext;
 	}
-	free(curr);
+	freeToken(curr);
 	*tokenList = NULL;
 
 	return 0;
