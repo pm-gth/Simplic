@@ -20,5 +20,6 @@
 #define CHARS_FOR_INT_TO_STRING 10 // Number or chars reserved to represent an int as a string
 #define BIN_OP_OPERATOR_SIZE 3 // chars reserver to store the operator of a binary operation
 #define STARTING_LINE_CAPACITY 100
+#define STARTING_JUMP_TABLE_CAPACITY 50
 
 #endif

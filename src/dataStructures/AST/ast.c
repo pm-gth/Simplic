@@ -134,7 +134,7 @@ size_t astArrayCapacity;
 size_t astArrayIndex;
 
 void initAstArray() {
-    astArray = malloc(sizeof(SyntaxNode**) * STARTING_LINE_CAPACITY);
+    astArray = malloc(sizeof(SyntaxNode*) * STARTING_LINE_CAPACITY);
 
     astArrayCapacity = STARTING_LINE_CAPACITY;
     astArrayIndex = 0;
