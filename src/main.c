@@ -1,5 +1,6 @@
 #include "interpreter.h"
-#include "lexer.h"
+#include "dataStructures/ast.h"
+#include "dataStructures/token.h"
 #include "simplicError.h"
 #include "scriptReader.h"
 
