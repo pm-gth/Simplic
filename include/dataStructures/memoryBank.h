@@ -13,12 +13,6 @@ Values from the memory bank are returned in a wrapper type so errors can be noti
 #include "simplic.h"
 #include "simplicError.h"
 
-typedef enum {
-    VALUE_INT,
-    VALUE_STR,
-    VALUE_VOID
-} ValueType;
-
 void initMemoryBank(void);
 void deleteMemoryBank(void); // Empties the variable bank, call at exit
 

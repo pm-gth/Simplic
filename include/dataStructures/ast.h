@@ -28,7 +28,10 @@ typedef enum {
     NODE_BIN_OP,
     NODE_BLOCK,
     NODE_WHILE,
-    NODE_IF
+    NODE_IF,
+    NODE_GOTO,
+    NODE_GOBACK,
+    NODE_TAG
 } NodeType;
 
 // AST nodes, with different nodes to account for different tokens (vars, loops, instructions...)
@@ -56,5 +59,6 @@ void initAstArray(void);
 void addLineAstArray(SyntaxNode* tree); // Add AST tree to the AST-Array
 void deleteAstArray(void); // Deallocate AST-Array
 size_t astArraySize(void);
+size_t syntaxNodeToLineNumber(SyntaxNode* tree); // Checks to which line number corresponds the given tree
 
 #endif

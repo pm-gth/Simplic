@@ -1,4 +1,5 @@
 #include "dataStructures/ast.h"
+#include "dataStructures/jumpTable.h"
 #include "lexer.h"
 #include "parser.h"
 #include "interpreter.h"
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
     Token* tokenList = initTokenQueue();
     initAstArray();
     initMemoryBank();
+    initJumpStack();
     SimplicValue val;
 
     tokenizeSource(&tokenList, program, error);
@@ -36,7 +38,12 @@ int main(int argc, char *argv[]) {
     size_t lines = astArraySize();
 
     for (size_t i = 0; i < lines; i++) {
-        val = eval(astArray[i], error);
+        if(val.type == VALUE_JUMP) {
+            i = syntaxNodeToLineNumber(val.jumpAddress) + 1; // +1 avoids infinite GOBACK to GOTO recursion
+            val = eval(astArray[i], error);
+        } else {
+            val = eval(astArray[i], error);
+        }
 
         if (error->hasError) {
             printError(error);

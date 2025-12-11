@@ -26,6 +26,9 @@ void freeSyntaxTree(SyntaxNode* tree) {
         case NODE_NUMBER:
         case NODE_VAR:
         case NODE_UNASSIGN:
+        case NODE_GOTO:
+        case NODE_TAG:
+        case NODE_GOBACK:
             // No child nodes to free
             break;
         case NODE_STRING:
@@ -86,6 +89,7 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
 
         case NODE_VAR:
         case NODE_UNASSIGN:
+        case NODE_GOTO:
             // Vars are only compared by name, their value is in the bank
             return strcmp(a->varName, b->varName) == 0;
 
@@ -120,6 +124,11 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
         case NODE_INCREMENT:
         case NODE_DECREMENT:
             return compareSyntaxTree(a->subnodeB, b->subnodeB);
+
+        case NODE_GOBACK:
+        case NODE_TAG:
+                // This nodes do not contain anythyng nor have sons, always the same
+                return true;
 
         default:
             // Undefined, try to compare both branches
@@ -174,4 +183,12 @@ void deleteAstArray(void) {
 
 size_t astArraySize(void) {
     return astArrayIndex; // Return up to the last used position
+}
+
+size_t syntaxNodeToLineNumber(SyntaxNode* tree) {
+   size_t i = 0;
+   while(astArray[i] != tree) {
+        i++;
+   }
+   return i;
 }

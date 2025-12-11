@@ -15,8 +15,16 @@
 
 #include "simplic.h"
 #include "dataStructures/memoryBank.h"
+#include "dataStructures/jumpTable.h"
 #include "dataStructures/ast.h"
 #include "simplicError.h"
+
+typedef enum {
+    VALUE_INT,
+    VALUE_STR,
+    VALUE_JUMP,
+    VALUE_VOID
+} ValueType;
 
 // Wrapper type for eval(), contains the result of the last evaluation
 typedef struct SimplicValue SimplicValue;
@@ -24,6 +32,7 @@ struct SimplicValue {
     ValueType type;
     int integer;
     char* string;
+    SyntaxNode* jumpAddress;
     bool receivedReturn;
 };
 

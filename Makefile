@@ -32,8 +32,8 @@ $(TEST_DIR):
 
 # ----------- BUILD TARGETS -----------
 
-simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o memoryBank.o interpreter.o scriptReader.o ast.o main.o
-	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/$(BIN_NAME)
+simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o memoryBank.o interpreter.o scriptReader.o ast.o jumpTable.o main.o
+	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/jumpTable.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/$(BIN_NAME)
 
 run: simplic
 	./$(BUILD_DIR)/$(BIN_NAME)
@@ -42,6 +42,9 @@ run: simplic
 
 ast.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/ast -c src/dataStructures/AST/ast.c -o $(BUILD_DIR)/ast.o
+
+jumpTable.o: $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/jumpTable -c src/dataStructures/jumpTable/jumpTable.c -o $(BUILD_DIR)/jumpTable.o
 
 token.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/token -c src/dataStructures/token/token.c -o $(BUILD_DIR)/token.o

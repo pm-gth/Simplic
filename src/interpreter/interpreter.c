@@ -1,19 +1,26 @@
+#include "interpreter.h"
+#include "dataStructures/ast.h"
+#include "dataStructures/jumpTable.h"
 #include "private_interpreter.h"
 
 SimplicValue eval_returnInt(int n) {
-    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true };
+    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = true, .jumpAddress = NULL };
 }
 
 SimplicValue eval_returnStr(char* s) {
-    return (SimplicValue){ .type = VALUE_INT, .integer = 0, .string = s, .receivedReturn = true };
+    return (SimplicValue){ .type = VALUE_STR, .integer = 0, .string = s, .receivedReturn = true, .jumpAddress = NULL };
 }
 
 SimplicValue eval_makeResultInt(int n) {
-    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = false };
+    return (SimplicValue){ .type = VALUE_INT, .integer = n, .string = NULL, .receivedReturn = false, .jumpAddress = NULL };
+}
+
+SimplicValue eval_makeResultJump(SyntaxNode* jumpAddress) {
+    return (SimplicValue){ .type = VALUE_JUMP, .integer = 0, .string = NULL, .receivedReturn = false, .jumpAddress = jumpAddress };
 }
 
 SimplicValue eval_makeResultStr(char* s) {
-    SimplicValue res = { .type = VALUE_STR, .integer = 0, .string = NULL, .receivedReturn = false };
+    SimplicValue res = { .type = VALUE_STR, .integer = 0, .string = NULL, .receivedReturn = false, .jumpAddress = NULL };
     int len = strlen(s);
     res.string = malloc(sizeof(char)*(len+1));
     strcpy(res.string, s);
@@ -22,7 +29,7 @@ SimplicValue eval_makeResultStr(char* s) {
 }
 
 SimplicValue eval_makeResultVoid() {
-    return (SimplicValue){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false };
+    return (SimplicValue){ .type = VALUE_VOID, .integer = 0, .string = NULL , .receivedReturn = false, .jumpAddress = NULL };
 }
 
 SimplicValue eval_makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...) {
@@ -262,6 +269,28 @@ SimplicValue eval(SyntaxNode* node, SimplicError* error) {
             if (body.receivedReturn) return body; // Propagate RETURN
         }
         return eval_makeResultVoid();
+    }
+
+    // Return the address of the jump, next eval call should start there
+    if(node->type == NODE_GOTO) {
+        SyntaxNode* jumpAddress = getJumpAddress(node->varName, error);
+        if(error->hasError) {
+            return eval_makeError_keepErrInfo(error);
+        }
+        pushJump(node); // Stores current address in the stack, used by GOBACK
+        return eval_makeResultJump(jumpAddress);
+    }
+
+    if(node->type == NODE_GOBACK) {
+        SyntaxNode* jumpAddress = popJump(error);
+        if(error->hasError) {
+            return eval_makeError_keepErrInfo(error);
+        }
+        return eval_makeResultJump(jumpAddress);
+    }
+
+    if(node->type == NODE_TAG) {
+        return eval_makeResultVoid(); // TAG nodes are only used as references for jumps, they return nothing
     }
 
     return eval_makeError(error, ERROR_MISC, "Tried to evaluate unknown node of type: %d", node->type);

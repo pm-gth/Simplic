@@ -18,6 +18,7 @@
 #include "lexer.h"
 #include "simplicError.h"
 #include "dataStructures/ast.h"
+#include "dataStructures/jumpTable.h"
 
 // Parses a line of code from the token list and generates an AST used later for execution
 SyntaxNode* parseLineOfCode(Token** tokenList, SimplicError* error);

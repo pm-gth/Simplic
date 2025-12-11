@@ -1,3 +1,4 @@
+#include "dataStructures/token.h"
 #include "private_lexer.h"
 
 const char* src;
@@ -87,6 +88,9 @@ void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {
 			if (strcmp(buffer, "THEN") == 0) { enqueueToken(tokenList, TOKEN_THEN, "THEN", NULL); continue; }
 			if (strcmp(buffer, "ELSE") == 0) { enqueueToken(tokenList, TOKEN_ELSE, "ELSE", NULL); continue; }
 			if (strcmp(buffer, "FI") == 0) { enqueueToken(tokenList, TOKEN_FI, "FI", NULL); continue; }
+			if (strcmp(buffer, "GOTO") == 0) { enqueueToken(tokenList, TOKEN_GOTO, "GOTO", NULL); continue; }
+			if (strcmp(buffer, "GOBACK") == 0) { enqueueToken(tokenList, TOKEN_GOBACK, "GOBACK", NULL); continue; }
+			if (strcmp(buffer, "TAG") == 0) { enqueueToken(tokenList, TOKEN_TAG, "TAG", NULL); continue; }
 			enqueueToken(tokenList, TOKEN_VAR, buffer, NULL); continue;
 		}
 

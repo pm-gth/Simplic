@@ -43,6 +43,9 @@ typedef enum {
     TOKEN_THEN,
     TOKEN_ELSE,
     TOKEN_FI,
+    TOKEN_GOTO,
+    TOKEN_GOBACK,
+    TOKEN_TAG,
     TOKEN_EOF
 } TokenType;
 

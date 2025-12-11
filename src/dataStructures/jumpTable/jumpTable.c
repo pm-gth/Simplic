@@ -1,8 +1,10 @@
+#include "dataStructures/ast.h"
 #include "private_jumpTable.h"
+#include <string.h>
 
 JumpTableEntry** jumpTable;
-int jumpTableIndex;
-int jumpTableSize;
+size_t jumpTableIndex;
+size_t jumpTableSize;
 
 void initJumpTable(void) {
    jumpTable = malloc(sizeof(JumpTableEntry*) * STARTING_JUMP_TABLE_CAPACITY);
@@ -22,9 +24,15 @@ void jumpTableEnsureCapacity() {
     }
 }
 
+char* my_strdup(const char* s) { // Crossplatform alternative to strdup()
+    char* copy = malloc(strlen(s) + 1);
+    if (copy) strcpy(copy, s);
+    return copy;
+}
+
 JumpTableEntry* newJumpTableEntry(char* identifier, SyntaxNode* address) {
    JumpTableEntry* entry = malloc(sizeof(JumpTableEntry));
-   entry->identifier = strdup(identifier);
+   entry->identifier = my_strdup(identifier);
    entry->address = address;
 
    return entry;
@@ -33,7 +41,7 @@ JumpTableEntry* newJumpTableEntry(char* identifier, SyntaxNode* address) {
 void addJumpEntry(char* identifier, SyntaxNode* address, SimplicError* error) {
    jumpTableEnsureCapacity();
 
-   for(int i = 0; i < jumpTableIndex; i++) {
+   for(size_t i = 0; i < jumpTableIndex; i++) {
       if(strcmp(identifier, jumpTable[i]->identifier) == 0) {
          setError(error, ERROR_SYMBOL_REASIGNATION , "Tried to reasign an address to jump identifier %s", identifier);
          return;
@@ -44,7 +52,7 @@ void addJumpEntry(char* identifier, SyntaxNode* address, SimplicError* error) {
 }
 
 SyntaxNode* getJumpAddress(char* identifier, SimplicError* error) {
-   for(int i = 0; i < jumpTableIndex; i++) {
+   for(size_t i = 0; i < jumpTableIndex; i++) {
       if(strcmp(identifier, jumpTable[i]->identifier) == 0) {
          return jumpTable[i]->address;
       }
@@ -60,7 +68,7 @@ static void freeJumpTableEntry(JumpTableEntry* entry) {
 }
 
 void deleteJumpTable(void) {
-   for(int i = 0; i < jumpTableIndex; i++) {
+   for(size_t i = 0; i < jumpTableIndex; i++) {
       freeJumpTableEntry(jumpTable[i]);
    }
    free(jumpTable);

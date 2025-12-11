@@ -1,4 +1,6 @@
 #include "dataStructures/ast.h"
+#include "dataStructures/jumpTable.h"
+#include "dataStructures/token.h"
 #include "private_parser.h"
 
 TokenType findIfBlockDelimiter(Token** tokenList) {
@@ -236,6 +238,48 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         n->subnodeA = cond.node;
         n->subnodeB = ifBody;
         n->subnodeC = elseBody;
+        return makeResult(n);
+    }
+
+
+    // ------------------------------------------
+    // GOTO Node -> Label name
+    // ------------------------------------------
+    if (t->type == TOKEN_GOTO) {
+        dequeueToken(tokenList); // consume GOTO
+        Token tag = dequeueToken(tokenList); // tag name
+        SyntaxNode* n = initNode();
+        n->type = NODE_GOTO;
+        strcpy(n->varName, tag.name);
+        return makeResult(n);
+    }
+
+    // ------------------------------------------
+    // GOBACK Node
+    // ------------------------------------------
+    if (t->type == TOKEN_GOBACK) {
+        dequeueToken(tokenList); // consume GOBACK
+        SyntaxNode* n = initNode();
+        n->type = NODE_GOBACK;
+        return makeResult(n);
+    }
+
+    // -------------------------------------------------
+    // TAG Node: create TAG node and register
+    // the identifier and jump address in the jumpTable
+    // -------------------------------------------------
+    if (t->type == TOKEN_TAG) {
+        dequeueToken(tokenList); // consume TAG
+        Token tag = dequeueToken(tokenList); // tag name
+        SyntaxNode* n = initNode();
+        n->type = NODE_TAG;
+
+        addJumpEntry(tag.name, n, error);
+
+        if (error->hasError) {
+            makeError_keepErrInfo(error);
+        }
+
         return makeResult(n);
     }
 
@@ -538,6 +582,7 @@ SyntaxNode* parseLineOfCode(Token** tokenList, SimplicError* error) {
 
 void parseFullCode(Token** tokenList, SimplicError* error) {
     SyntaxNode* lineAst;
+    initJumpTable();
 
     do {
         lineAst = parseLineOfCode(tokenList, error);
