@@ -130,11 +130,14 @@ bool compareSyntaxTree(SyntaxNode* a, SyntaxNode* b) {
 }
 
 SyntaxNode** astArray;
-size_t astArrayCapacity = STARTING_LINE_CAPACITY;
-size_t astArrayIndex = 0;
+size_t astArrayCapacity;
+size_t astArrayIndex;
 
 void initAstArray() {
     astArray = malloc(sizeof(SyntaxNode**) * STARTING_LINE_CAPACITY);
+
+    astArrayCapacity = STARTING_LINE_CAPACITY;
+    astArrayIndex = 0;
 
     for(int i = 0; i < STARTING_LINE_CAPACITY; i++) {
         astArray[i] = NULL;
@@ -146,7 +149,7 @@ void astArrayEnsureCapacity() {
         astArray = realloc(astArray, astArrayCapacity + 10);
         astArrayCapacity += 10;
 
-        for(int i = astArrayIndex; i < astArrayCapacity; i++) {
+        for(size_t i = astArrayIndex; i < astArrayCapacity; i++) {
             astArray[i] = NULL;
         }
     }
@@ -158,7 +161,7 @@ void addLineAstArray(SyntaxNode* tree) {
 }
 
 void deleteAstArray(void) {
-    int i = 0;
+    size_t i = 0;
     SyntaxNode* current = astArray[i];
 
     while(current != NULL && i < astArrayCapacity) {

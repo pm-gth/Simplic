@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
     size_t lines = astArraySize();
 
-    for (int i = 0; i < lines; i++) {
+    for (size_t i = 0; i < lines; i++) {
         val = eval(astArray[i], error);
 
         if (error->hasError) {

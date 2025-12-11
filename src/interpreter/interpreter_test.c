@@ -1,3 +1,4 @@
+#include "dataStructures/ast.h"
 #include "simplicError.h"
 #include "unity.h"
 #include "unity_internals.h"
@@ -435,6 +436,70 @@ void returnFromNested(void) {
     TEST_ASSERT_EQUAL_INT(0, val.integer);
 }
 
+// Code parsed in one sitting and stored inside the ast array
+void readCodeFromAstArray(void) {
+     const char* program =
+        "SET X = 0\n"
+        "WHILE X LT 5 DO\n"
+            "INCR X\n"
+            "IF X EQ 5 THEN\n"
+                "RETURN 0\n"
+            "FI\n"
+        "DONE\n"
+        "RETURN 1\n";
+
+    bool end = false;
+    SimplicValue val;
+
+    tokenizeSource(&tokenList, program, error);
+    initAstArray();
+    parseFullCode(&tokenList, error);
+    int size = astArraySize();
+    TEST_ASSERT_EQUAL_INT(size, 3+1); // 3 ast trees must be generated
+
+    for(int i = 0; i < size && !end; i++){
+        val = eval(astArray[i], error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(0, val.integer);
+
+    deleteAstArray();
+}
+
+void readCodeFromAstArrayTwo(void) {
+     const char* program =
+        "SET X = 4\n"
+        "IF X % 2 NEQ 0 THEN\n"
+            "RETURN 1\n"
+        "ELSE\n"
+            "RETURN 0\n"
+        "FI";
+
+    bool end = false;
+    SimplicValue val;
+
+    tokenizeSource(&tokenList, program, error);
+    initAstArray();
+    parseFullCode(&tokenList, error);
+    int size = astArraySize();
+
+    for(int i = 0; i < size && !end; i++){
+        val = eval(astArray[i], error);
+
+        if(val.receivedReturn || error->hasError) 
+            end = true;
+    }
+
+    TEST_ASSERT_FALSE(error->hasError);
+    TEST_ASSERT_EQUAL_INT(0, val.integer);
+
+    deleteAstArray();
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(testReturnCorrectInt);
@@ -454,5 +519,7 @@ int main(void) {
     RUN_TEST(ifStatement);
     RUN_TEST(elseStatement);
     RUN_TEST(returnFromNested);
+    RUN_TEST(readCodeFromAstArray);
+    RUN_TEST(readCodeFromAstArrayTwo);
     return UNITY_END();
 }
