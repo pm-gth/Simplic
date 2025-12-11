@@ -14,9 +14,9 @@ struct ParseResult{
 
 // Wrapper functions, used to return nodes or errors
 static ParseResult makeResult(SyntaxNode* n);
-ParseResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
+static ParseResult makeError(SimplicError* err, SimplicErrorType code, const char* fmt, ...);
 
-TokenType findIfBlockDelimiter(Token** tokenList); // Determines if the IF block delimiter is ELSE or FI (or none)
+static TokenType findIfBlockDelimiter(Token** tokenList); // Determines if the IF block delimiter is ELSE or FI (or none)
 
 // Node generators, used to determine the kind of node to create based on the token list
 static ParseResult parseStatement(Token** tokenList, SimplicError* error); // generates instruction nodes
@@ -27,6 +27,6 @@ static ParseResult parseRelational(Token** tokenList, SimplicError* error); // T
 static ParseResult parseEquality(Token** tokenList, SimplicError* error); // Takes care of equality ops == and !=
 static ParseResult parseLogical(Token** tokenList, SimplicError* error); // Takes care of logical ops && and ||
 static ParseResult parseLowestPrecedenceOperation(Token** tokenList, SimplicError* error); // Wrapper to call lowest priority parsing
-SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken); // takes care of code blocks
+static SyntaxNode* parseBlock(Token** tokenList, SimplicError* error, TokenType endToken); // takes care of code blocks
 
 #endif

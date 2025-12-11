@@ -31,8 +31,8 @@ $(TEST_DIR):
 
 # ----------- BUILD TARGETS -----------
 
-simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o interpreter.o scriptReader.o ast.o main.o
-	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
+simplic: $(BUILD_DIR) token.o lexer.o simplicError.o parser.o memoryBank.o interpreter.o scriptReader.o ast.o main.o
+	$(CC) $(CFLAGS) $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o $(BUILD_DIR)/interpreter.o $(BUILD_DIR)/scriptReader.o $(BUILD_DIR)/ast.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/simplic
 
 run: simplic
 	./$(BUILD_DIR)/simplic
@@ -44,6 +44,9 @@ ast.o: $(BUILD_DIR)
 
 token.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/token -c src/dataStructures/token/token.c -o $(BUILD_DIR)/token.o
+
+memoryBank.o: $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -I src/dataStructures/memoryBank -c src/dataStructures/memoryBank/memoryBank.c -o $(BUILD_DIR)/memoryBank.o
 
 lexer.o: $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -I src/lexer -c src/lexer/lexer.c -o $(BUILD_DIR)/lexer.o
@@ -79,8 +82,8 @@ lexerTest: $(TEST_DIR) unity.o simplicError.o token.o
 parserTest: $(TEST_DIR) unity.o simplicError.o token.o lexer.o ast.o
 	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/parser/ src/parser/parser_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/ast.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o -o $(TEST_DIR)/parserTest
 
-interpreterTest: $(TEST_DIR) unity.o simplicError.o token.o lexer.o parser.o ast.o
-	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES)  -I src/interpreter/ src/interpreter/interpreter_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/ast.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o -o $(TEST_DIR)/interpreterTest
+interpreterTest: $(TEST_DIR) unity.o simplicError.o token.o lexer.o parser.o ast.o memoryBank.o
+	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES)  -I src/interpreter/ src/interpreter/interpreter_test.c  $(BUILD_DIR)/token.o $(BUILD_DIR)/lexer.o $(BUILD_DIR)/ast.o $(TEST_DIR)/unity.o $(BUILD_DIR)/simplicError.o $(BUILD_DIR)/parser.o $(BUILD_DIR)/memoryBank.o -o $(TEST_DIR)/interpreterTest
 
 errorTest: $(TEST_DIR) unity.o
 	$(CC) $(TESTADITIONALFLAGS) $(CFLAGS) $(INCLUDES) -I src/simplicError/ src/simplicError/simplicError_test.c  $(TEST_DIR)/unity.o -o $(TEST_DIR)/errorTest

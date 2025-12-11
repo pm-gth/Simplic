@@ -3,6 +3,7 @@
 #include "unity_internals.h"
 
 #include "interpreter.c"
+#include "parser.h"
 
 Token* tokenList;
 SimplicError* error;

@@ -1,7 +1,6 @@
+#include "lexer.h"
+#include "parser.h"
 #include "interpreter.h"
-#include "dataStructures/ast.h"
-#include "dataStructures/token.h"
-#include "simplicError.h"
 #include "scriptReader.h"
 
 int main(int argc, char *argv[]) {
