@@ -1,6 +1,17 @@
 #ifndef AST_H 
 #define AST_H
 
+/*
+=======================================================================================
+Abstract Syntax Tree used to represent lines of the program, ASTs are made by the
+parser then sent to the interpreter.
+Each node represents one kind operation to be done by the interpreter, this operations
+have different subnodes that store the operands, this operands can be other operations
+themselves. More information about how each type of node stores its operands can be 
+found in parser.c
+=======================================================================================
+*/
+
 #include "simplic.h"
 
 typedef enum {

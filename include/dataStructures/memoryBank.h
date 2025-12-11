@@ -1,6 +1,15 @@
 #ifndef MEMORYBANK_H
 #define MEMORYBANK_H
 
+/*
+=======================================================================================
+The memory bank is the structure where variables are stored and accessed during the
+program's execution. Values are stored inside a hashmap where the name (aka identifier)
+is used to generate the hask key.
+Values from the memory bank are returned in a wrapper type so errors can be notified
+=======================================================================================
+*/
+
 #include "simplic.h"
 #include "simplicError.h"
 

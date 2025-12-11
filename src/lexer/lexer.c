@@ -2,7 +2,6 @@
 
 const char* src;
 
-// TODO: Support '_' for variable names
 bool isAlpha(char c){
 	return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
 }
@@ -12,7 +11,7 @@ bool isNumber(char c){
 }
 
 bool isAlphaNumer(char c){
-	return (isAlpha(c) || isNumber(c));
+	return (isAlpha(c) || isNumber(c) || c == '_');
 }
 
 void tokenizeSource(Token** tokenList, const char* src, SimplicError* error) {

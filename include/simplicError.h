@@ -40,6 +40,6 @@ SimplicError* initError(void); // Allocates error in memory
 void setError(SimplicError* error, SimplicErrorType errCode, const char* format, ...); // Throws error with message
 void unsetError(SimplicError* error); // Unsets error
 void printError(SimplicError* error);
-void deleteError(SimplicError** error); // Deletes and deallocates error
+void deleteError(SimplicError** error); // Deletes error
 
 #endif

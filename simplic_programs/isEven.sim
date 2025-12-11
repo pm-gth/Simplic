@@ -1,9 +1,9 @@
-# Program that prints all the even numbers between X and UPPEROUND
+# Program that prints all the even numbers between X and UPPER_BOUND
 
 SET X = 0
-SET UPPEROUND = 30
+SET UPPER_BOUND = 30
 
-WHILE X LT UPPEROUND DO
+WHILE X LT UPPER_BOUND DO
         IF X % 2 EQ 0 AND X NEQ 0 THEN # Zero is not even
                 PRINTLN X + " is even"
         FI
