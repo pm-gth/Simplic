@@ -152,10 +152,10 @@ ParseResult parseStatement(Token** tokenList, SimplicError* error) {
         return makeResult(n);
     }
 
-    // ------------------------------------------
+    // -------------------------------------------
     // INCR/DECR Node
     // Subnode B: name of variable to be modified
-    // ------------------------------------------
+    // -------------------------------------------
     if (t->type == TOKEN_INCREMENT || t->type == TOKEN_DECREMENT) {
         TokenType oldType = t->type;
         dequeueToken(tokenList);

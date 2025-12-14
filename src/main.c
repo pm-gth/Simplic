@@ -67,3 +67,11 @@ int main(int argc, char *argv[]) {
     free((char*)program);
     return 0;
 }
+
+/*
+TODO:
+La implementación actual no permite gotos hacia bloques anidados, hacer que todos los
+syntax nodes se guarden en el mismo nivel de astArray y que la ejecución se dé por punteros
+
+Si el programa no tiene return acaba en segfault
+*/
